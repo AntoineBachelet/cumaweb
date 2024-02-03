@@ -52,17 +52,19 @@ Pour l'instant on commit le fichier `poetry.lock` pour que les dépendances soie
 ### Django
 
 Références :
-- https://www.youtube.com/watch?v=Bn0k9DDYBZM 
+
+- <https://www.youtube.com/watch?v=Bn0k9DDYBZM>
 
 `django-admin startproject cumaweb` pour lancer le projet django et créer le framework
-Dans le dossier `cumaweb` crée : 
+Dans le dossier `cumaweb` crée :
+
 - dans `setting.py` on fixe `DEBUG = True` pour debug
 - dans `setting.py` on retrouve les templates
-    - si on ajoute une app `blog` à coté du dossier `cumaweb` (vidéo à 1h18)
+  - si on ajoute une app `blog` à coté du dossier `cumaweb` (vidéo à 1h18)
 - dans `urls.py`, ajouter dans la liste `urlspatterns` les paths **relatifs** qui renvoient vers des views (j'ai mis une view index pour page d'accueil)
 - dans `views.py`, on peut ajouter des vues qui renvoient vers les templates qui sont dans `templates\cumaweb` (il explique dans la vidéo à 1h39 pourquoi créer un sous-dossier `\cumaweb` dans `templates`), j'ai juste fait un template basique
 
-`python src/manage.py runserver` pour lancer le serveur local (il doit y avoir un moyen de setup le dossier src comme start directory https://stackoverflow.com/questions/43305050/changing-the-default-path-of-visual-studio-codes-integrated-terminal)
+`python src/manage.py runserver` pour lancer le serveur local (il doit y avoir un moyen de setup le dossier src comme start directory <https://stackoverflow.com/questions/43305050/changing-the-default-path-of-visual-studio-codes-integrated-terminal>)
 `CTRL+C` pour arrêter le serveur
 `python src/manage.py migrate` sinon y a des warnings (à comprendre mieux)
 

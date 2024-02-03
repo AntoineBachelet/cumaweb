@@ -3,8 +3,8 @@ line-length = 119
 
 [tool.ruff]
 # Never enforce `E501` (line length violations).
-ignore = ["C901", "E501", "E741", "W605", "E402"]
-select = ["C", "E", "F", "I", "W"]
+lint.ignore = ["C901", "E501", "E741", "W605", "E402"]
+lint.select = ["C", "E", "F", "I", "W"]
 line-length = 119
 
 [tool.ruff.isort]
@@ -27,9 +27,9 @@ pytest = "^8.0.0"
 pytest-mock = "^3.12.0"
 pre-commit = "^3.6.0"
 ruff = "^0.2.0"
-isort = "^5.13.2"
 black = "^24.1.1"
 rich = "^13.7.0"
+djlint = "^1.34.1"
 
 
 [tool.poetry.group.doc.dependencies]
