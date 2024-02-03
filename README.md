@@ -11,7 +11,7 @@ Une personne peut être responsable d'un outil et utilisateur d'autres outils.
 
 ## Installation
 
-### conda
+### Conda
 
 Environnement virtuel avec [miniconda](https://docs.conda.io/projects/miniconda/en/latest/)
 
