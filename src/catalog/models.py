@@ -6,6 +6,10 @@ from django.db import models
 
 
 class AgriculturalTool(models.Model):
+    """
+    Stores an agricultural tool, related to :model:`auth.User`.
+    """
+
     # tools
     # a name, a description,
     # an illustration,
@@ -18,6 +22,10 @@ class AgriculturalTool(models.Model):
 
 
 class BorrowTool(models.Model):
+    """
+    Stores a borrowing of a tool, related to :model:`auth.User` and :model:`AgriculturalTool`.
+    """
+
     # a tool,
     # a user borrowing the tool,
     # a date of borrowing,
