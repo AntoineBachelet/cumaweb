@@ -1,0 +1,8 @@
+{% if all_tools %}
+<ul>
+    {% for tool in all_tools %}
+    <li>{{ tool.name }}</li>
+    {% endfor %}
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}

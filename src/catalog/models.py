@@ -3,8 +3,6 @@ from django.db import models
 
 
 # Create your models here.
-
-
 class AgriculturalTool(models.Model):
     """
     Stores an agricultural tool, related to :model:`auth.User`.
@@ -17,7 +15,7 @@ class AgriculturalTool(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     description = models.TextField()
-    image = models.ImageField(upload_to="images/")
+    # image = models.ImageField(upload_to="images/")
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
 
 
