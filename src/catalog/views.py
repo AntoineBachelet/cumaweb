@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
 from .models import AgriculturalTool
 
@@ -13,5 +13,6 @@ def index(request):
     return render(request, "catalog/index.html", {"all_tools": all_tools})
 
 
-# get_object_or_404
-# si outil pas disponible pour utilisateur le renvoyer
+def see_tool(request, tool_id):
+    tool = get_object_or_404(AgriculturalTool, pk=tool_id)
+    return render(request, "catalog/tool.html", {"tool": tool})

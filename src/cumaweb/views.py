@@ -6,4 +6,5 @@ from django.shortcuts import render
 
 
 def index(request):
+    # display the link to catalog
     return render(request, "cumaweb/index.html")

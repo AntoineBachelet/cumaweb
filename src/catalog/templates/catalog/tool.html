@@ -1,0 +1,13 @@
+<p> {{tool.name}} </p>
+
+{% if tool.description %}
+<p> {{tool.description}} </p>
+{% endif %}
+
+<p> Responsable : {{tool.user.username}} {{tool.user.firstname}} {{tool.user.lastname}} </p>
+
+{% comment %} 
+
+{% endcomment %}
+
+<a href="{% url 'catalog:index'%}"> Retour Outil </a>

@@ -1,8 +1,8 @@
 {% if all_tools %}
 <ul>
     {% for tool in all_tools %}
-    <li>{{ tool.name }}</li>
+    <li><a href= "{% url 'catalog:see_tool' tool.id %}">{{tool.name}}</a></li>
     {% endfor %}
 {% else %}
-    <p>No polls are available.</p>
+    <p>No tools are available.</p>
 {% endif %}
