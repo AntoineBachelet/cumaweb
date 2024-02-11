@@ -7,7 +7,7 @@ lint.ignore = ["C901", "E501", "E741", "W605", "E402"]
 lint.select = ["C", "E", "F", "I", "W"]
 line-length = 119
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 lines-after-imports = 2
 
 [tool.poetry]

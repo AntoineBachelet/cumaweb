@@ -6,7 +6,6 @@ from django.db import models
 from django.forms import ModelForm
 
 
-# Create your models here.
 class AgriculturalTool(models.Model):
     """
     Stores an agricultural tool, related to :model:`auth.User`.
@@ -51,23 +50,14 @@ class BorrowToolForm(ModelForm):
             "tool": forms.HiddenInput(),
         }
 
-    # check the date cannot be in the futur
     def clean_date_borrow(self):
         date_borrow = self.cleaned_data["date_borrow"]
         if date_borrow > datetime.date.today():
             raise forms.ValidationError("La date ne peut pas être dans le futur")
         return date_borrow
 
-    # id de l'utilisateur ne doit pas pouvoir être changé par l'utilisateur
-    # aller vers une page de confirmation qui demande de comfirmer le prêt et de vérifier les infos, on pourra le faire sur la même page avec du javascript
 
-
-# user ne doit pas pouvoir sélectionner autre user et sélectionner un autre outil
 class BorrowToolFormUser(BorrowToolForm):
-    # the tool must not be modifiable by the user
-    # and not appear in the form
-    # tool =  Field(widget=HiddenInput())
-    # hidden filed
-
+    # todo: formulaire uniquement pour utilisateur
     class Meta(BorrowToolForm.Meta):
         exclude = ["user"]  # exclude the user field

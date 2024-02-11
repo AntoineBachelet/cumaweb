@@ -1,8 +1,11 @@
 {% if all_tools %}
 <ul>
     {% for tool in all_tools %}
-    <li><a href= "{% url 'catalog:see_tool' tool.id %}">{{tool.name}}</a></li>
+    <li><a href= "{% url 'catalog:borrow_tool' tool.id %}">{{tool.name}}</a></li>
     {% endfor %}
 {% else %}
     <p>No tools are available.</p>
 {% endif %}
+
+<a href="{% url 'index' %}">Retour index</a>
+

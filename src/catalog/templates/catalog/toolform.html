@@ -1,0 +1,21 @@
+<h1> {{tool.name}} </h1>
+
+{% if tool.description %}
+<p> {{tool.description}} </p>
+{% endif %}
+
+<p> Responsable : {{tool.user.username}} {{tool.user.firstname}} {{tool.user.lastname}} </p>
+
+<h2> Emprunt de l'outil </h2>
+
+{% comment %} {% if user.is_authenticated %} {% endcomment %}
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save">
+</form>
+
+{% for msg in messages %}
+    {{msg}}
+{% endfor %}    
+
+<a href="{% url 'catalog:index'%}"> Retour Outil </a>

@@ -1,69 +1,46 @@
+from typing import Any
+
 from django.contrib import messages
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404, render
+from django.forms.models import BaseModelForm
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, ListView
 
-from .models import AgriculturalTool, BorrowToolForm
-
-
-# Create your views here.
-# def index(request):
-#     return HttpResponse("Hello, world. You're at the catalog index.")
+from .models import AgriculturalTool, BorrowTool, BorrowToolForm
 
 
-def index(request):
-    all_tools = AgriculturalTool.objects.all()
-    return render(request, "catalog/index.html", {"all_tools": all_tools})
+class ToolListView(ListView):
+    model = AgriculturalTool
+    context_object_name = "all_tools"
+    template_name = "catalog/index.html"
 
 
-def see_tool(request, tool_id):
-    if request.method == "POST":
-        form = BorrowToolForm(request.POST)
-        if form.is_valid():
-            form.save()
-            # update the rendering
-            tool_id = form.cleaned_data["tool"].id
-            tool = get_object_or_404(AgriculturalTool, pk=tool_id)
-            user = User.objects.all()
-            form = BorrowToolForm(initial={"tool": tool})
-            messages.success(request, "L'utilisation de l'outil est bien enregistrée. Merci !")
-            return render(request, "catalog/tool.html", {"tool": tool, "users": user, "form": form})
-        else:
-            messages.error(request, "Il y a une erreur dans le formulaire. Merci de vérifier les informations.")
-            tool = get_object_or_404(AgriculturalTool, pk=tool_id)
-            user = User.objects.all()
-            form = BorrowToolForm(initial={"tool": tool})
-            return render(request, "catalog/tool.html", {"tool": tool, "users": user, "form": form})
-    else:
-        tool = get_object_or_404(AgriculturalTool, pk=tool_id)
-        # get all the user
-        user = User.objects.all()
-        # init form with the tool
-        form = BorrowToolForm(initial={"tool": tool})
-        return render(request, "catalog/tool.html", {"tool": tool, "users": user, "form": form})
+class BorrowCreateView(CreateView):
+    form_class = BorrowToolForm
+    model = BorrowTool
+    template_name = "catalog/toolform.html"
 
+    def get_success_url(self):
+        return reverse_lazy("catalog:borrow_tool", kwargs={"tool_id": self.kwargs.get("tool_id")})
 
-# def get_borrowed(request):
-#     """check if the form is valid and save it, the update the rendering of the page with a json message"""
-#     if request.method == "POST":
-#         pass
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["tool"] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        return context
 
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["tool"] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        return initial
 
-# pré remplir le format du jour en le forcant
+    def form_valid(self, form):
+        messages.success(self.request, "L'utilisation de l'outil est bien enregistrée. Merci !")
+        return super().form_valid(form)
 
-# def get_borrowed(request):
-#     # avoir id du modele autrement que par le formulaire peut être
-#     if request.method == "POST":
-#         form = BorrowToolForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             # update the rendering
-#             tool_id = form.cleaned_data["tool"].id
-#             tool = get_object_or_404(AgriculturalTool, pk=tool_id)
-#             user = User.objects.all()
-#             see_tool(request, form.cleaned_data["tool"].id)
-#     else:
-#         return see_tool(request, form.cleaned_data["tool"].id)
+    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+        messages.error(self.request, "Il y a une erreur dans le formulaire. Merci de vérifier les informations.")
+        return super().form_invalid(form)
 
-# pré remplir le format du jour en le forcant
 
 # @login_required
