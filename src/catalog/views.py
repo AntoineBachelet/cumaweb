@@ -7,7 +7,8 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
 
-from .models import AgriculturalTool, BorrowTool, BorrowToolForm
+from .forms import BorrowToolForm
+from .models import AgriculturalTool, BorrowTool
 
 
 class ToolListView(ListView):
