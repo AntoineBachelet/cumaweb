@@ -1,11 +1,51 @@
-{% if all_tools %}
-<ul>
-    {% for tool in all_tools %}
-    <li><a href= "{% url 'catalog:borrow_tool' tool.id %}">{{tool.name}}</a></li>
-    {% endfor %}
-{% else %}
-    <p>No tools are available.</p>
-{% endif %}
+{% extends "catalog/base.html" %}
 
-<a href="{% url 'index' %}">Retour index</a>
+{% block title %}Catalogue d'outils agricoles{% endblock %}
 
+{% block content %}
+<div class="container py-4">
+  <header class="pb-3 mb-4 border-bottom">
+    <h1 class="display-5 fw-bold text-primary">Catalogue d'outils agricoles</h1>
+  </header>
+
+  <div class="row mt-4">
+    {% if all_tools %}
+      {% for tool in all_tools %}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ tool.name }}</h5>
+              <p class="card-text">{{ tool.description|truncatechars:100 }}</p>
+              {% if tool.user %}
+                <p class="text-muted small">
+                  <i class="bi bi-person-circle"></i> Responsable: {{ tool.user.get_full_name|default:tool.user.username }}
+                </p>
+              {% endif %}
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+              <a href="{% url 'catalog:borrow_tool' tool.id %}" class="btn btn-primary">
+                <i class="bi bi-hand-index-thumb"></i> Emprunter
+              </a>
+              <a href="#" class="btn btn-outline-secondary ms-2">
+                <i class="bi bi-info-circle"></i> Détails
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <div class="alert alert-info">
+          <i class="bi bi-exclamation-circle me-2"></i> Aucun outil n'est disponible pour le moment.
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="mt-5 text-center">
+    <a href="{% url 'index' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-house"></i> Retour à l'accueil
+    </a>
+  </div>
+</div>
+{% endblock %}
