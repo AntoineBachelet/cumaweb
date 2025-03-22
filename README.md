@@ -68,6 +68,8 @@ Dans le dossier `cumaweb` crée :
 `CTRL+C` pour arrêter le serveur
 `python src/manage.py migrate` sinon y a des warnings (à comprendre mieux)
 
+`python src/manage.py test catalog` pour lancer le fichier de tests unitaires de l'application catalog
+
 ### Ecriture de la documentation
 
 Pour écrire la documentation, nous utilisons [mkdocs](https://www.mkdocs.org/).
