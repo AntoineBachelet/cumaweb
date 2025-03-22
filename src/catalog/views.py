@@ -1,3 +1,5 @@
+"""Definition of views for catalog application"""
+
 from typing import Any
 
 from django.contrib import messages
@@ -12,12 +14,16 @@ from .models import AgriculturalTool, BorrowTool
 
 
 class ToolListView(ListView):
+    """View to display the list of AgriculturalTool"""
+
     model = AgriculturalTool
     context_object_name = "all_tools"
     template_name = "catalog/index.html"
 
 
 class BorrowCreateView(CreateView):
+    """View to display BorrowToolForm"""
+
     form_class = BorrowToolForm
     model = BorrowTool
     template_name = "catalog/toolform.html"
@@ -43,7 +49,10 @@ class BorrowCreateView(CreateView):
         messages.error(self.request, "Il y a une erreur dans le formulaire. Merci de vérifier les informations.")
         return super().form_invalid(form)
 
+
 class ToolCreateView(CreateView):
+    """View to display CreateToolForm"""
+
     form_class = CreateToolForm
     model = AgriculturalTool
     template_name = "catalog/createtoolform.html"
