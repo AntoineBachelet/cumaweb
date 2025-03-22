@@ -29,6 +29,7 @@ jobs:
         poetry install
     - name: Run Migrations
       run: |
+        python src/manage.py makemigrations catalog
         python src/manage.py migrate
     - name: Run Tests
       run: |
