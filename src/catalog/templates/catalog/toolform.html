@@ -1,21 +1,94 @@
-<h1> {{tool.name}} </h1>
+{% extends "catalog/base.html" %}
+{% load form_tags %}
 
-{% if tool.description %}
-<p> {{tool.description}} </p>
-{% endif %}
+{% block title %}Emprunt - {{ tool.name }}{% endblock %}
 
-<p> Responsable : {{tool.user.username}} {{tool.user.firstname}} {{tool.user.lastname}} </p>
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h4 class="card-title mb-0">
+            <i class="bi bi-hand-index-thumb me-2"></i>Emprunt d'outil
+          </h4>
+        </div>
+        
+        <div class="card-body">
+          <div class="mb-4">
+            <h5>Détails de l'outil</h5>
+            <div class="d-flex align-items-center">
+              <div class="border p-3 rounded-3 bg-light me-3 flex-shrink-0">
+                <i class="bi bi-tools fs-1 text-secondary"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold mb-1">{{ tool.name }}</h5>
+                <p class="mb-1">{{ tool.description }}</p>
+                {% if tool.user %}
+                  <small class="text-muted">
+                    <i class="bi bi-person-circle"></i> Responsable: {{ tool.user.get_full_name|default:tool.user.username }}
+                  </small>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <hr>
 
-<h2> Emprunt de l'outil </h2>
-
-{% comment %} {% if user.is_authenticated %} {% endcomment %}
-<form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Save">
-</form>
-
-{% for msg in messages %}
-    {{msg}}
-{% endfor %}    
-
-<a href="{% url 'catalog:index'%}"> Retour Outil </a>
+          <h5 class="mb-3">Formulaire d'emprunt</h5>
+          <form method="post">
+            {% csrf_token %}
+            
+            {{ form.tool }}
+            
+            <div class="row g-3 mb-3">
+              {% if not user.is_authenticated %}
+                <div class="col-md-6">
+                  <label for="{{ form.user.id_for_label }}" class="form-label">Utilisateur</label>
+                  {{ form.user|add_class:"form-control" }}
+                  {% if form.user.errors %}
+                    <div class="invalid-feedback d-block">{{ form.user.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+              
+              <div class="col-md-6">
+                <label for="{{ form.date_borrow.id_for_label }}" class="form-label">Date d'emprunt</label>
+                {{ form.date_borrow|add_class:"form-control" }}
+                {% if form.date_borrow.errors %}
+                  <div class="invalid-feedback d-block">{{ form.date_borrow.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-6">
+                <label for="{{ form.time_borrow.id_for_label }}" class="form-label">Heure d'emprunt</label>
+                {{ form.time_borrow|add_class:"form-control" }}
+                {% if form.time_borrow.errors %}
+                  <div class="invalid-feedback d-block">{{ form.time_borrow.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="{{ form.comment.id_for_label }}" class="form-label">Commentaire</label>
+              {{ form.comment|add_class:"form-control" }}
+              {% if form.comment.errors %}
+                <div class="invalid-feedback d-block">{{ form.comment.errors }}</div>
+              {% endif %}
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'catalog:index' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Retour au catalogue
+              </a>
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle me-1"></i>Confirmer l'emprunt
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
