@@ -3,7 +3,7 @@ import datetime
 from django import forms
 from django.forms import ModelForm
 
-from .models import BorrowTool
+from .models import BorrowTool, AgriculturalTool
 
 
 class BorrowToolForm(ModelForm):
@@ -22,6 +22,15 @@ class BorrowToolForm(ModelForm):
         if date_borrow > datetime.date.today():
             raise forms.ValidationError("La date ne peut pas être dans le futur")
         return date_borrow
+    
+
+class CreateToolForm(ModelForm):
+    class Meta:
+        model = AgriculturalTool
+        fields = ["name", "description", "user"]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 2, "cols": 50, "placeholder": "Commentaire"}),
+        }
 
 
 class BorrowToolFormUser(BorrowToolForm):

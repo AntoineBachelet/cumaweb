@@ -1,0 +1,8 @@
+<h1> Création de l'outil </h1>
+
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save">
+</form> 
+
+<a href="{% url 'catalog:index'%}"> Retour Outil </a>
