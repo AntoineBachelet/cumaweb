@@ -1,8 +1,67 @@
-<h1> Création de l'outil </h1>
+{% extends "catalog/base.html" %}
+{% load form_tags %}
 
-<form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Save">
-</form> 
+{% block title %}Création d'un nouvel outil{% endblock %}
 
-<a href="{% url 'catalog:index'%}"> Retour Outil </a>
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h4 class="card-title mb-0">
+            <i class="bi bi-plus-circle me-2"></i>Création d'un nouvel outil
+          </h4>
+        </div>
+        
+        <div class="card-body">
+          <p class="text-muted mb-4">Complétez le formulaire ci-dessous pour ajouter un nouvel outil au catalogue.</p>
+          
+          <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+              <label for="{{ form.name.id_for_label }}" class="form-label">Nom de l'outil</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                {{ form.name|add_class:"form-control"  }}
+              </div>
+              {% if form.name.errors %}
+                <div class="text-danger mt-1 small">{{ form.name.errors }}</div>
+              {% endif %}
+            </div>
+            
+            <div class="mb-3">
+              <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+              {{ form.description|add_class:"form-control"  }}
+              {% if form.description.errors %}
+                <div class="text-danger mt-1 small">{{ form.description.errors }}</div>
+              {% endif %}
+            </div>
+            
+            {% if form.user %}
+            <div class="mb-3">
+              <label for="{{ form.user.id_for_label }}" class="form-label">Responsable de l'outil</label>
+              {{ form.user|add_class:"form-control"  }}
+              {% if form.user.errors %}
+                <div class="text-danger mt-1 small">{{ form.user.errors }}</div>
+              {% endif %}
+              <div class="form-text">Utilisateur en charge de l'outil</div>
+            </div>
+            {% endif %}
+            
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'catalog:index' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Retour au catalogue
+              </a>
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle me-1"></i>Enregistrer l'outil
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
