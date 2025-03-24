@@ -1,31 +1,25 @@
 """File defining the different views used by user application"""
 
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
 
 from .forms import CreateUserForm
 
-
-def createUser(request):
+class CreateUserView(LoginRequiredMixin, CreateView):
     """View to create a new User"""
-    # if this is a POST request we need to process the form data
-    if request.method == "POST":
-        # create a form instance and populate it with data from the request:
-        form = CreateUserForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            new_user = User.objects.create_user(
-                form.cleaned_data["login"], form.cleaned_data["email"], form.cleaned_data["password"]
-            )
-            new_user.last_name = form.cleaned_data["lastname"]
-            new_user.first_name = form.cleaned_data["firstname"]
-            new_user.save()
-            return HttpResponseRedirect("/")
-
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = CreateUserForm()
-
-    return render(request, "users/createUser.html", {"form": form})
+    login_url = "/users/login"
+    form_class = CreateUserForm
+    model = User
+    template_name = "users/createUser.html"
+    success_url = reverse_lazy("index")
+    
+    def form_valid(self, form):
+        messages.success(self.request, "Nouvel utilisateur enregistré")
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        messages.error(self.request, "Il y a une erreur dans le formulaire. Merci de vérifier les informations.")
+        return super().form_invalid(form)
