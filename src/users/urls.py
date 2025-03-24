@@ -1,3 +1,4 @@
+"""File defining the different urls served by user application"""
 from django.urls import path
 from django.contrib.auth import views as auth_views
 
