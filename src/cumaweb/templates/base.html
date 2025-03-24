@@ -56,12 +56,17 @@
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="#">Mon profil</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#">Déconnexion</a></li>
+                <li>
+                  <form method="post" action="{% url 'users:logout' %}" class="dropdown-item p-0">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item border-0 bg-transparent text-start w-100">Déconnexion</button>
+                  </form>
+                </li>
               </ul>
             </li>
           {% else %}
             <li class="nav-item">
-              <a class="nav-link" href="#">Connexion</a>
+              <a class="nav-link" href="{% url 'users:login' %}">Connexion</a>
             </li>
           {% endif %}
         </ul>
