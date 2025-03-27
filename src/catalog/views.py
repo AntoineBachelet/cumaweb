@@ -48,6 +48,13 @@ class BorrowCreateView(LoginRequiredMixin, CreateView):
 
     def form_invalid(self, form: BaseModelForm) -> HttpResponse:
         messages.error(self.request, "Il y a une erreur dans le formulaire. Merci de vérifier les informations.")
+    
+        # Ajouter des messages spécifiques pour chaque erreur de champ
+        for field, errors in form.errors.items():
+            for error in errors:
+                field_name = form.fields[field].label or field
+                messages.error(self.request, f"Erreur dans le champ '{field_name}': {error}")
+        
         return super().form_invalid(form)
 
 
