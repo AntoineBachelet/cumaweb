@@ -8,22 +8,23 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .forms import BorrowToolForm, CreateToolForm
 from .models import AgriculturalTool, BorrowTool
 
 
-class ToolListView(ListView):
+class ToolListView(LoginRequiredMixin, ListView):
     """View to display the list of AgriculturalTool"""
-
+    login_url = "/users/login"
     model = AgriculturalTool
     context_object_name = "all_tools"
     template_name = "catalog/index.html"
 
 
-class BorrowCreateView(CreateView):
+class BorrowCreateView(LoginRequiredMixin, CreateView):
     """View to display BorrowToolForm"""
-
+    login_url = "/users/login"
     form_class = BorrowToolForm
     model = BorrowTool
     template_name = "catalog/toolform.html"
@@ -50,9 +51,9 @@ class BorrowCreateView(CreateView):
         return super().form_invalid(form)
 
 
-class ToolCreateView(CreateView):
+class ToolCreateView(LoginRequiredMixin, CreateView):
     """View to display CreateToolForm"""
-
+    login_url = "/users/login"
     form_class = CreateToolForm
     model = AgriculturalTool
     template_name = "catalog/createtoolform.html"
