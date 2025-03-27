@@ -1,6 +1,7 @@
 """Unit tests for users application"""
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 from .forms import CreateUserForm
 
@@ -13,10 +14,10 @@ class CreateUserFormTest(TestCase):
     def test_form_fields(self):
         """Test if form fields are correct"""
         form = CreateUserForm()
-        self.assertTrue("lastname" in form.fields)
-        self.assertTrue("firstname" in form.fields)
+        self.assertTrue("last_name" in form.fields)
+        self.assertTrue("first_name" in form.fields)
         self.assertTrue("email" in form.fields)
-        self.assertTrue("login" in form.fields)
+        self.assertTrue("username" in form.fields)
         self.assertTrue("password" in form.fields)
 
     def test_empty_form_validation(self):
@@ -24,12 +25,12 @@ class CreateUserFormTest(TestCase):
         form = CreateUserForm(data={})
         self.assertFalse(form.is_valid())
 
-        self.assertIn("lastname", form.errors)
-        self.assertIn("This field is required.", form.errors["lastname"][0])
-        self.assertIn("firstname", form.errors)
-        self.assertIn("This field is required.", form.errors["firstname"][0])
-        self.assertIn("login", form.errors)
-        self.assertIn("This field is required.", form.errors["login"][0])
+        self.assertIn("last_name", form.errors)
+        self.assertIn("This field is required.", form.errors["last_name"][0])
+        self.assertIn("first_name", form.errors)
+        self.assertIn("This field is required.", form.errors["first_name"][0])
+        self.assertIn("username", form.errors)
+        self.assertIn("This field is required.", form.errors["username"][0])
         self.assertIn("email", form.errors)
         self.assertIn("This field is required.", form.errors["email"][0])
         self.assertIn("password", form.errors)
@@ -46,6 +47,15 @@ class UsersViewTest(TestCase):
         ["/users/create/", "users:createUser", {}, "users/createUser.html"],
     ]
 
+    @classmethod
+    def setUpTestData(cls):
+        # Créer plusieurs outils pour les tests de pagination, etc.
+        test_user = User.objects.create_user(username="testuser", password="testpassword")
+    
+    def setUp(self):
+        # Log in the user before each test
+        login_successful = self.client.login(username="testuser", password="testpassword")
+        self.assertTrue(login_successful)
 
     def test_view_url_exists_at_desired_location(self):
         """Test if url exist"""

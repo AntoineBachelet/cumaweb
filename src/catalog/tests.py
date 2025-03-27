@@ -262,6 +262,11 @@ class ToolListViewTest(TestCase):
             AgriculturalTool.objects.create(
                 name=f"Outil {tool_id}", description=f"Description {tool_id}", user=test_user
             )
+    
+    def setUp(self):
+        # Log in the user before each test
+        login_successful = self.client.login(username="testuser", password="testpassword")
+        self.assertTrue(login_successful)
 
     def test_view_url_exists_at_desired_location(self):
         """Test if url exist"""
