@@ -28,9 +28,7 @@ class BorrowCreateView(LoginRequiredMixin, CreateView):
     form_class = BorrowToolForm
     model = BorrowTool
     template_name = "catalog/toolform.html"
-
-    def get_success_url(self):
-        return reverse_lazy("catalog:borrow_tool", kwargs={"tool_id": self.kwargs.get("tool_id")})
+    success_url = reverse_lazy("catalog:index")
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -64,9 +62,7 @@ class ToolCreateView(LoginRequiredMixin, CreateView):
     form_class = CreateToolForm
     model = AgriculturalTool
     template_name = "catalog/createtoolform.html"
-
-    def get_success_url(self):
-        return reverse_lazy("catalog:create_tool")
+    success_url = reverse_lazy("catalog:index")
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
