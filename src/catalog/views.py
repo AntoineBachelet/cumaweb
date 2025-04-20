@@ -71,7 +71,7 @@ class ToolDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         # Get all borrows for this tool, ordered by most recent first
-        context["borrows"] = BorrowTool.objects.filter(tool=self.object).order_by("-date_borrow", "-time_borrow")
+        context["borrows"] = BorrowTool.objects.filter(tool=self.object).order_by("-date_borrow", "-start_time_borrow")
         return context
 
 
@@ -107,7 +107,7 @@ def export_to_excel(request, tool_id):
     tool = get_object_or_404(AgriculturalTool, pk=tool_id)
 
     # Get all borrows for this tool
-    borrows = BorrowTool.objects.filter(tool=tool).order_by("-date_borrow", "-time_borrow")
+    borrows = BorrowTool.objects.filter(tool=tool).order_by("-date_borrow", "-start_time_borrow")
 
     # Create a new Excel workbook
     workbook = openpyxl.Workbook()
@@ -128,13 +128,13 @@ def export_to_excel(request, tool_id):
         full_name = borrow.user.get_full_name() if borrow.user.get_full_name() else borrow.user.username
 
         # Convert time_borrow to decimal hours (assuming time_borrow is stored as 'HH:MM')
-        time_hour = borrow.time_borrow.hour
-        time_minute = borrow.time_borrow.minute
+        time_hour = borrow.start_time_borrow.hour
+        time_minute = borrow.start_time_borrow.minute
         time_decimal = time_hour + (time_minute / 60)
 
         worksheet[f"A{row}"] = full_name
         worksheet[f"B{row}"] = borrow.date_borrow.strftime("%d/%m/%Y")
-        worksheet[f"C{row}"] = borrow.time_borrow.strftime("%H:%M")
+        worksheet[f"C{row}"] = borrow.start_time_borrow.strftime("%H:%M")
         worksheet[f"D{row}"] = time_decimal
 
         row += 1

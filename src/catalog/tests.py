@@ -113,7 +113,8 @@ class BorrowToolModelTest(TestCase):
             tool=cls.test_tool,
             user=cls.test_user,
             date_borrow=datetime.date(2025, 1, 1),
-            time_borrow=datetime.time(1, 0, 0),
+            start_time_borrow=datetime.time(8, 0, 0),
+            end_time_borrow=datetime.time(12, 0, 0),
             comment="Test comment",
         )
 
@@ -134,10 +135,15 @@ class BorrowToolModelTest(TestCase):
         borrow = BorrowTool.objects.get(id=self.test_borrow.id)
         self.assertEqual(borrow.date_borrow, datetime.date(2025, 1, 1))
 
-    def test_time_borrow_value(self):
-        """Test that the borrow time is correctly stored"""
+    def test_start_time_borrow_value(self):
+        """Test that the start borrow time is correctly stored"""
         borrow = BorrowTool.objects.get(id=self.test_borrow.id)
-        self.assertEqual(borrow.time_borrow, datetime.time(1, 0, 0))
+        self.assertEqual(borrow.start_time_borrow, datetime.time(8, 0, 0))
+
+    def test_end_time_borrow_value(self):
+        """Test that the end borrow time is correctly stored"""
+        borrow = BorrowTool.objects.get(id=self.test_borrow.id)
+        self.assertEqual(borrow.end_time_borrow, datetime.time(12, 0, 0))
 
     def test_comment_value(self):
         """Test that the comment is correctly stored"""
@@ -206,7 +212,8 @@ class BorrowToolFormTest(TestCase):
         self.assertTrue("tool" in form.fields)
         self.assertTrue("user" in form.fields)
         self.assertTrue("date_borrow" in form.fields)
-        self.assertTrue("time_borrow" in form.fields)
+        self.assertTrue("start_time_borrow" in form.fields)
+        self.assertTrue("end_time_borrow" in form.fields)
         self.assertTrue("comment" in form.fields)
 
     def test_empty_form_validation(self):
@@ -220,8 +227,10 @@ class BorrowToolFormTest(TestCase):
         self.assertIn("This field is required.", form.errors["user"][0])
         self.assertIn("date_borrow", form.errors)
         self.assertIn("This field is required.", form.errors["date_borrow"][0])
-        self.assertIn("time_borrow", form.errors)
-        self.assertIn("This field is required.", form.errors["time_borrow"][0])
+        self.assertIn("start_time_borrow", form.errors)
+        self.assertIn("This field is required.", form.errors["start_time_borrow"][0])
+        self.assertIn("end_time_borrow", form.errors)
+        self.assertIn("This field is required.", form.errors["end_time_borrow"][0])
         self.assertIn("comment", form.errors)
         self.assertIn("This field is required.", form.errors["comment"][0])
 
@@ -234,7 +243,8 @@ class BorrowToolFormTest(TestCase):
                 "tool": 1,
                 "user": 1,
                 "date_borrow": datetime.date(2050, 1, 1),
-                "time_borrow": datetime.time(1, 0, 0),
+                "start_time_borrow": datetime.time(8, 0, 0),
+                "start_time_borrow": datetime.time(12, 0, 0),
                 "comment": "Test comment",
             }
         )
@@ -301,7 +311,8 @@ class ToolListViewTest(TestCase):
             tool=test_tool,
             user=test_user,
             date_borrow=datetime.date.today(),
-            time_borrow=datetime.time(2, 30),  # 2 hours 30 minutes
+            start_time_borrow=datetime.time(8, 0, 0),
+            end_time_borrow=datetime.time(12, 0, 0),
             comment="Test borrow",
         )
 
