@@ -250,6 +250,8 @@ class ToolListViewTest(TestCase):
         ["/catalog/", "catalog:index", {}, "catalog/index.html"],
         ["/catalog/create_tool/", "catalog:create_tool", {}, "catalog/createtoolform.html"],
         ["/catalog/1/borrow/", "catalog:borrow_tool", {"tool_id": 1}, "catalog/toolform.html"],
+        ["/catalog/1/", "catalog:tool_detail", {"pk": 1}, "catalog/tooldetail.html"],
+        ["/catalog/1/export/", "catalog:export_tool", {"tool_id": 1}, None],
     ]
 
     @classmethod
@@ -262,7 +264,7 @@ class ToolListViewTest(TestCase):
             AgriculturalTool.objects.create(
                 name=f"Outil {tool_id}", description=f"Description {tool_id}", user=test_user
             )
-    
+
     def setUp(self):
         # Log in the user before each test
         login_successful = self.client.login(username="testuser", password="testpassword")
@@ -285,4 +287,29 @@ class ToolListViewTest(TestCase):
         for _, url_name, kwargs_dict, template in self.list_urls:
             response = self.client.get(reverse(url_name, kwargs=kwargs_dict))
             self.assertEqual(response.status_code, 200)
-            self.assertTemplateUsed(response, template)
+            if template:
+                self.assertTemplateUsed(response, template)
+
+    def test_export_functionality(self):
+        """Test if the export function returns the correct response with Excel file"""
+        # First create some borrow records for testing
+        test_user = User.objects.get(username="testuser")
+        test_tool = AgriculturalTool.objects.get(id=1)
+
+        # Create a few borrows
+        BorrowTool.objects.create(
+            tool=test_tool,
+            user=test_user,
+            date_borrow=datetime.date.today(),
+            time_borrow=datetime.time(2, 30),  # 2 hours 30 minutes
+            comment="Test borrow",
+        )
+
+        # Test the export URL
+        response = self.client.get(reverse("catalog:export_tool", kwargs={"tool_id": 1}))
+
+        # Check if response has the correct status code
+        self.assertEqual(response.status_code, 200)
+
+        # Verify the content type is correct for an Excel file
+        self.assertEqual(response["Content-Type"], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")

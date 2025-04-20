@@ -26,7 +26,7 @@
               <a href="{% url 'catalog:borrow_tool' tool.id %}" class="btn btn-primary">
                 <i class="bi bi-hand-index-thumb"></i> Emprunter
               </a>
-              <a href="#" class="btn btn-outline-secondary ms-2">
+              <a href="{% url 'catalog:tool_detail' tool.id %}" class="btn btn-outline-secondary ms-2">
                 <i class="bi bi-info-circle"></i> Détails
               </a>
             </div>

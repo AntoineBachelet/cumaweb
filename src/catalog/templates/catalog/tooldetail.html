@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load form_tags %}
+
+{% block title %}Détails - {{ tool.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card shadow">          
+          <div class="card-body">
+            <div class="mb-4">
+              <h5>Détails de l'outil</h5>
+              <div class="d-flex align-items-center">
+                <div class="border p-3 rounded-3 bg-light me-3 flex-shrink-0">
+                  <i class="bi bi-tools fs-1 text-secondary"></i>
+                </div>
+                <div>
+                  <h5 class="fw-bold mb-1">{{ tool.name }}</h5>
+                  <p class="mb-1">{{ tool.description }}</p>
+                  {% if tool.user %}
+                    <small class="text-muted">
+                      <i class="bi bi-person-circle"></i> Responsable: {{ tool.user.get_full_name|default:tool.user.username }}
+                    </small>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="mt-4">
+                <h5>Historique des emprunts</h5>
+                
+                {% if borrows %}
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Heure</th>
+                          <th>Utilisateur</th>
+                          <th>Commentaire</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for borrow in borrows %}
+                          <tr>
+                            <td>{{ borrow.date_borrow|date:"d/m/Y" }}</td>
+                            <td>{{ borrow.time_borrow|time:"H:i" }}</td>
+                            <td>{{ borrow.user.get_full_name|default:borrow.user.username }}</td>
+                            <td>{{ borrow.comment|default:"-" }}</td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                {% else %}
+                  <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Cet outil n'a pas encore été emprunté.
+                  </div>
+                {% endif %}
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="{% url 'catalog:export_tool' tool.id %}" class="btn btn-success">
+                  <i class="bi bi-file-excel me-1"></i> Exporter sous Excel
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% endblock %}
