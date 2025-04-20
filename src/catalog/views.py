@@ -102,6 +102,7 @@ class ToolCreateView(LoginRequiredMixin, CreateView):
 
 
 def export_to_excel(request, tool_id):
+    """Function to export to Excel the list of borrows for a given tool"""
     # Get the tool
     tool = get_object_or_404(AgriculturalTool, pk=tool_id)
 
