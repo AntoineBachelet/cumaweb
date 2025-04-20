@@ -58,6 +58,11 @@
                   </div>
                 {% endif %}
               </div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="{% url 'catalog:export_tool' tool.id %}" class="btn btn-success">
+                  <i class="bi bi-file-excel me-1"></i> Exporter sous Excel
+                </a>
+              </div>
             </div>
           </div>
         </div>
