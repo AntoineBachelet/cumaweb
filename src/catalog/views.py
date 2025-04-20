@@ -63,6 +63,12 @@ class ToolDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "tool"
     template_name = "catalog/tooldetail.html"
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        # Get all borrows for this tool, ordered by most recent first
+        context["borrows"] = BorrowTool.objects.filter(tool=self.object).order_by('-date_borrow', '-time_borrow')
+        return context
+
 
 
 class ToolCreateView(LoginRequiredMixin, CreateView):
