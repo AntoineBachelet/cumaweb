@@ -7,7 +7,7 @@ from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .forms import BorrowToolForm, CreateToolForm
@@ -54,6 +54,15 @@ class BorrowCreateView(LoginRequiredMixin, CreateView):
                 messages.error(self.request, f"Erreur dans le champ '{field_name}': {error}")
         
         return super().form_invalid(form)
+    
+
+class ToolDetailView(LoginRequiredMixin, DetailView):
+    """View to display the detail of an AgriculturalTool"""
+    login_url = "/users/login"
+    model = AgriculturalTool
+    context_object_name = "tool"
+    template_name = "catalog/tooldetail.html"
+
 
 
 class ToolCreateView(LoginRequiredMixin, CreateView):
