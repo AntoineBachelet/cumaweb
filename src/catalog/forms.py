@@ -15,10 +15,11 @@ class BorrowToolForm(ModelForm):
         """Main definition of form"""
 
         model = BorrowTool
-        fields = ["tool", "user", "date_borrow", "time_borrow", "comment"]
+        fields = ["tool", "user", "date_borrow", "start_time_borrow", "end_time_borrow", "comment"]
         widgets = {
             "date_borrow": forms.DateInput(attrs={"type": "date", "value": datetime.date.today()}),
-            "time_borrow": forms.TimeInput(attrs={"type": "time", "value": "01:00"}),
+            "start_time_borrow": forms.TimeInput(attrs={"type": "time", "value": "08:00"}),
+            "end_time_borrow": forms.TimeInput(attrs={"type": "time", "value": "12:00"}),
             "comment": forms.Textarea(attrs={"rows": 2, "cols": 50, "placeholder": "Commentaire"}),
             "tool": forms.HiddenInput(),
         }

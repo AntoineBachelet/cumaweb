@@ -32,5 +32,6 @@ class BorrowTool(models.Model):
     tool = models.ForeignKey(AgriculturalTool, on_delete=models.CASCADE, null=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
     date_borrow = models.DateField()
-    time_borrow = models.TimeField()
+    start_time_borrow = models.TimeField()
+    end_time_borrow = models.TimeField()
     comment = models.TextField(null=True)

@@ -71,7 +71,7 @@ class ToolDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         # Get all borrows for this tool, ordered by most recent first
-        context["borrows"] = BorrowTool.objects.filter(tool=self.object).order_by("-date_borrow", "-time_borrow")
+        context["borrows"] = BorrowTool.objects.filter(tool=self.object).order_by("-date_borrow", "-start_time_borrow")
         return context
 
 
@@ -107,7 +107,7 @@ def export_to_excel(request, tool_id):
     tool = get_object_or_404(AgriculturalTool, pk=tool_id)
 
     # Get all borrows for this tool
-    borrows = BorrowTool.objects.filter(tool=tool).order_by("-date_borrow", "-time_borrow")
+    borrows = BorrowTool.objects.filter(tool=tool).order_by("-date_borrow", "-start_time_borrow")
 
     # Create a new Excel workbook
     workbook = openpyxl.Workbook()
@@ -116,10 +116,11 @@ def export_to_excel(request, tool_id):
     # Set headers
     worksheet["A1"] = "Nom Prénom"
     worksheet["B1"] = "Date"
-    worksheet["C1"] = "Heure"
-    worksheet["D1"] = "Durée (heures)"
-    worksheet["E1"] = "Nom"
-    worksheet["F1"] = "Total Heures par Personne"
+    worksheet["C1"] = "Heure début"
+    worksheet["D1"] = "Heure fin"
+    worksheet["E1"] = "Durée (heures)"
+    worksheet["F1"] = "Nom"
+    worksheet["G1"] = "Total Heures par Personne"
 
     # Fill data
     row = 2
@@ -127,15 +128,25 @@ def export_to_excel(request, tool_id):
         # Get full name or username
         full_name = borrow.user.get_full_name() if borrow.user.get_full_name() else borrow.user.username
 
-        # Convert time_borrow to decimal hours (assuming time_borrow is stored as 'HH:MM')
-        time_hour = borrow.time_borrow.hour
-        time_minute = borrow.time_borrow.minute
-        time_decimal = time_hour + (time_minute / 60)
+        # Get start and end times
+        start_time = borrow.start_time_borrow
+        end_time = borrow.end_time_borrow
+        
+        # Calculate duration in hours
+        start_decimal = start_time.hour + (start_time.minute / 60)
+        end_decimal = end_time.hour + (end_time.minute / 60)
+        
+        # If end time is earlier than start time, assume it's the next day
+        if end_decimal < start_decimal:
+            duration = (24 - start_decimal) + end_decimal
+        else:
+            duration = end_decimal - start_decimal
 
         worksheet[f"A{row}"] = full_name
         worksheet[f"B{row}"] = borrow.date_borrow.strftime("%d/%m/%Y")
-        worksheet[f"C{row}"] = borrow.time_borrow.strftime("%H:%M")
-        worksheet[f"D{row}"] = time_decimal
+        worksheet[f"C{row}"] = start_time.strftime("%H:%M")
+        worksheet[f"D{row}"] = end_time.strftime("%H:%M")
+        worksheet[f"E{row}"] = duration
 
         row += 1
 
@@ -147,8 +158,8 @@ def export_to_excel(request, tool_id):
     # Add formulas for summing hours by person
     row = 2
     for name in distinct_names:
-        worksheet[f"E{row}"] = f"=A{row}"
-        worksheet[f"F{row}"] = f'=SUMIFS(D:D, A:A, "{name}")'
+        worksheet[f"F{row}"] = name
+        worksheet[f"G{row}"] = f'=SUMIFS(E:E, A:A, "{name}")'
         row += 1
 
     # Format the filename
