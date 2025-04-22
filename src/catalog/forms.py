@@ -39,7 +39,7 @@ class CreateToolForm(ModelForm):
         """Main definition of form"""
 
         model = AgriculturalTool
-        fields = ["name", "description", "user"]
+        fields = ["name", "description", "user", "image"]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 2, "cols": 50, "placeholder": "Commentaire"}),
         }
