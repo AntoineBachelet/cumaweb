@@ -187,6 +187,7 @@ class CreateToolFormTest(TestCase):
         self.assertTrue("name" in form.fields)
         self.assertTrue("description" in form.fields)
         self.assertTrue("user" in form.fields)
+        self.assertTrue("image" in form.fields)
 
     def test_empty_form_validation(self):
         """Test if empty form is rejected"""
@@ -234,7 +235,7 @@ class BorrowToolFormTest(TestCase):
         self.assertIn("comment", form.errors)
         self.assertIn("This field is required.", form.errors["comment"][0])
 
-        self.assertEqual(len(form.errors), 5)
+        self.assertEqual(len(form.errors), 6)
 
     def test_clean_date_borrow(self):
         """Test if form fields are correct"""
