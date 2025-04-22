@@ -4,7 +4,7 @@ Ce document à pour but de garder une traces des idées d'améliorations à appo
 
 ## Features
 
-- [ ] Ajouter une photo à un matériel
+- [X] Ajouter une photo à un matériel
 - [ ] Ajouter une option d'édition d'un matériel existant
 - [X] Modifier l'emprunt en date de début et date de fin plutôt qu'un temps donné
 - [ ] Mettre en place une gestion des emprunts déjà exportés ou non
@@ -13,3 +13,7 @@ Ce document à pour but de garder une traces des idées d'améliorations à appo
 
 - [ ] Améliorer la page d'acceuil
 - [ ] Améliorer l'Excel généré
+
+## Fix mineurs
+
+- [ ] Ajouter des images pour les tests unitaires
