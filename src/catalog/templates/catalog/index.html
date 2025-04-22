@@ -11,28 +11,31 @@
   <div class="row mt-4">
     {% if all_tools %}
       {% for tool in all_tools %}
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">{{ tool.name }}</h5>
-              <p class="card-text">{{ tool.description|truncatechars:100 }}</p>
-              {% if tool.user %}
-                <p class="text-muted small">
-                  <i class="bi bi-person-circle"></i> Responsable: {{ tool.user.get_full_name|default:tool.user.username }}
-                </p>
-              {% endif %}
-            </div>
-            <div class="card-footer bg-transparent border-top-0">
-              <a href="{% url 'catalog:borrow_tool' tool.id %}" class="btn btn-primary">
-                <i class="bi bi-hand-index-thumb"></i> Emprunter
-              </a>
-              <a href="{% url 'catalog:tool_detail' tool.id %}" class="btn btn-outline-secondary ms-2">
-                <i class="bi bi-info-circle"></i> Détails
-              </a>
-            </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          {% if tool.image %}
+            <img src="{{ tool.image.url }}" class="card-img-top" alt="{{ tool.name }}" style="height: 180px; object-fit: cover;">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ tool.name }}</h5>
+            <p class="card-text">{{ tool.description|truncatechars:100 }}</p>
+            {% if tool.user %}
+              <p class="text-muted small">
+                <i class="bi bi-person-circle"></i> Responsable: {{ tool.user.get_full_name|default:tool.user.username }}
+              </p>
+            {% endif %}
+          </div>
+          <div class="card-footer bg-transparent border-top-0">
+            <a href="{% url 'catalog:borrow_tool' tool.id %}" class="btn btn-primary">
+              <i class="bi bi-hand-index-thumb"></i> Emprunter
+            </a>
+            <a href="{% url 'catalog:tool_detail' tool.id %}" class="btn btn-outline-secondary ms-2">
+              <i class="bi bi-info-circle"></i> Détails
+            </a>
           </div>
         </div>
-      {% endfor %}
+      </div>
+    {% endfor %}
     {% else %}
       <div class="col-12">
         <div class="alert alert-info">
