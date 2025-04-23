@@ -10,7 +10,7 @@ from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from .forms import BorrowToolForm, CreateToolForm
 from .models import AgriculturalTool, BorrowTool
@@ -73,6 +73,28 @@ class ToolDetailView(LoginRequiredMixin, DetailView):
         # Get all borrows for this tool, ordered by most recent first
         context["borrows"] = BorrowTool.objects.filter(tool=self.object).order_by("-date_borrow", "-start_time_borrow")
         return context
+    
+class ToolUpdateView(LoginRequiredMixin, UpdateView):
+    """View to display CreateToolForm"""
+
+    login_url = "/users/login"
+    form_class = CreateToolForm
+    model = AgriculturalTool
+    template_name = "catalog/createtoolform.html"
+    success_url = reverse_lazy("catalog:index")
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["is_update"] = True
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Outil mis à jour avec succès")
+        return super().form_valid(form)
+
+    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+        messages.error(self.request, "Il y a une erreur dans le formulaire. Merci de vérifier les informations.")
+        return super().form_invalid(form)
 
 
 class ToolCreateView(LoginRequiredMixin, CreateView):
