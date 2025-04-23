@@ -42,6 +42,7 @@ class CreateToolForm(ModelForm):
         fields = ["name", "description", "user", "image"]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 2, "cols": 50, "placeholder": "Commentaire"}),
+            "image": forms.FileInput(attrs={"accept": ".png, .jpg, .jpeg"}),
         }
 
 
