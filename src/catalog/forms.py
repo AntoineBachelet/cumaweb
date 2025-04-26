@@ -4,6 +4,7 @@ import datetime
 
 from django import forms
 from django.forms import ModelForm
+from django.db.models import Max
 
 from .models import BorrowTool, AgriculturalTool
 
@@ -23,6 +24,20 @@ class BorrowToolForm(ModelForm):
             "comment": forms.Textarea(attrs={"rows": 2, "cols": 50, "placeholder": "Commentaire"}),
             "tool": forms.HiddenInput(),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super(BorrowToolForm, self).__init__(*args, **kwargs)
+        if self.initial.get('tool'):
+            tool_id = self.initial.get('tool').id
+
+            latest_return = BorrowTool.objects.filter(
+                tool_id=tool_id
+            ).aggregate(Max('end_time_borrow'))['end_time_borrow__max']
+
+            if latest_return:
+                self.fields['start_time_borrow'].widget = forms.NumberInput(
+                    attrs={"step": "0.1", "min": "0", "value": latest_return}
+                )
 
     def clean_date_borrow(self):
         """Validation function for date of borrow"""
