@@ -113,8 +113,8 @@ class BorrowToolModelTest(TestCase):
             tool=cls.test_tool,
             user=cls.test_user,
             date_borrow=datetime.date(2025, 1, 1),
-            start_time_borrow=datetime.time(8, 0, 0),
-            end_time_borrow=datetime.time(12, 0, 0),
+            start_time_borrow=140,
+            end_time_borrow=150.2,
             comment="Test comment",
         )
 
@@ -138,12 +138,12 @@ class BorrowToolModelTest(TestCase):
     def test_start_time_borrow_value(self):
         """Test that the start borrow time is correctly stored"""
         borrow = BorrowTool.objects.get(id=self.test_borrow.id)
-        self.assertEqual(borrow.start_time_borrow, datetime.time(8, 0, 0))
+        self.assertEqual(borrow.start_time_borrow, 140)
 
     def test_end_time_borrow_value(self):
         """Test that the end borrow time is correctly stored"""
         borrow = BorrowTool.objects.get(id=self.test_borrow.id)
-        self.assertEqual(borrow.end_time_borrow, datetime.time(12, 0, 0))
+        self.assertEqual(borrow.end_time_borrow, 150.2)
 
     def test_comment_value(self):
         """Test that the comment is correctly stored"""
@@ -244,8 +244,8 @@ class BorrowToolFormTest(TestCase):
                 "tool": 1,
                 "user": 1,
                 "date_borrow": datetime.date(2050, 1, 1),
-                "start_time_borrow": datetime.time(8, 0, 0),
-                "start_time_borrow": datetime.time(12, 0, 0),
+                "start_time_borrow": 140,
+                "end_time_borrow": 150,
                 "comment": "Test comment",
             }
         )
@@ -312,8 +312,8 @@ class ToolListViewTest(TestCase):
             tool=test_tool,
             user=test_user,
             date_borrow=datetime.date.today(),
-            start_time_borrow=datetime.time(8, 0, 0),
-            end_time_borrow=datetime.time(12, 0, 0),
+            start_time_borrow=140,
+            end_time_borrow=150.2,
             comment="Test borrow",
         )
 
