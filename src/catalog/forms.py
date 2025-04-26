@@ -18,8 +18,8 @@ class BorrowToolForm(ModelForm):
         fields = ["tool", "user", "date_borrow", "start_time_borrow", "end_time_borrow", "comment"]
         widgets = {
             "date_borrow": forms.DateInput(attrs={"type": "date", "value": datetime.date.today()}),
-            "start_time_borrow": forms.TimeInput(attrs={"type": "time", "value": "08:00"}),
-            "end_time_borrow": forms.TimeInput(attrs={"type": "time", "value": "12:00"}),
+            "start_time_borrow": forms.NumberInput(attrs={"step": "0.1", "min": "0"}),
+            "end_time_borrow": forms.NumberInput(attrs={"step": "0.1", "min": "0"}),
             "comment": forms.Textarea(attrs={"rows": 2, "cols": 50, "placeholder": "Commentaire"}),
             "tool": forms.HiddenInput(),
         }

@@ -49,8 +49,8 @@
                         {% for borrow in borrows %}
                           <tr>
                             <td>{{ borrow.date_borrow|date:"d/m/Y" }}</td>
-                            <td>{{ borrow.start_time_borrow|time:"H:i" }}</td>
-                            <td>{{ borrow.end_time_borrow|time:"H:i" }}</td>
+                            <td>{{ borrow.start_time_borrow }}</td>
+                            <td>{{ borrow.end_time_borrow }}</td>
                             <td>{{ borrow.user.get_full_name|default:borrow.user.username }}</td>
                             <td>{{ borrow.comment|default:"-" }}</td>
                           </tr>
