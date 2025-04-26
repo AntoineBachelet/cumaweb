@@ -252,6 +252,21 @@ class BorrowToolFormTest(TestCase):
         self.assertIn("date_borrow", form.errors)
         self.assertIn("La date ne peut pas être dans le futur", form.errors["date_borrow"][0])
 
+    def test_clean_end_time_borrow(self):
+        """Test if form fields are correct"""
+        form = BorrowToolForm(
+            data={
+                "tool": 1,
+                "user": 1,
+                "date_borrow": datetime.date(2025, 1, 1),
+                "start_time_borrow": 140,
+                "end_time_borrow": 130,
+                "comment": "Test comment",
+            }
+        )
+        self.assertIn("end_time_borrow", form.errors)
+        self.assertIn("L'heure de fin ne peut pas être inférieure à l'heure de début", form.errors["end_time_borrow"][0])
+
 
 # Views
 class ToolListViewTest(TestCase):

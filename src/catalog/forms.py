@@ -30,6 +30,14 @@ class BorrowToolForm(ModelForm):
         if date_borrow > datetime.date.today():
             raise forms.ValidationError("La date ne peut pas être dans le futur")
         return date_borrow
+    
+    def clean_end_time_borrow(self):
+        """Validation function for end time of borrow"""
+        start_time_borrow = self.cleaned_data["start_time_borrow"]
+        end_time_borrow = self.cleaned_data["end_time_borrow"]
+        if end_time_borrow <= start_time_borrow:
+            raise forms.ValidationError("L'heure de fin doit être supérieure à l'heure de début")
+        return end_time_borrow
 
 
 class CreateToolForm(ModelForm):
