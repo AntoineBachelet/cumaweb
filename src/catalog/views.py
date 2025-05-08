@@ -24,6 +24,11 @@ class ToolListView(LoginRequiredMixin, ListView):
     context_object_name = "all_tools"
     template_name = "catalog/index.html"
 
+    def get_queryset(self):
+        user = self.request.user
+        accessible_tools = AgriculturalTool.objects.filter(user_accesses__user=user) | AgriculturalTool.objects.filter(user=user)
+        return accessible_tools
+
 
 class BorrowCreateView(LoginRequiredMixin, CreateView):
     """View to display BorrowToolForm"""
