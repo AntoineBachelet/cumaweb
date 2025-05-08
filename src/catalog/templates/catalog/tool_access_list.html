@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Liste des accès de {{ tool.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <header class="pb-3 mb-4 border-bottom">
+    <h1 class="display-5 fw-bold text-primary">Liste des accès à {{ tool.name }}</h1>
+  </header>
+
+    <div class="row mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h2>Utilisateurs ayant accès</h2>
+            </div>
+            <div class="card-body">
+                {% if all_accesses %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Date d'ajout</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for access in all_accesses %}
+                            <tr>
+                                <td>{{ access.user.username }}</td>
+                                <td>{{ access.date_added|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'catalog:index' %}" class="btn btn-danger btn-sm">
+                                        Supprimer
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Aucun utilisateur n'a accès à cet outil actuellement.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+  <div class="mt-5 text-center">
+    <a href="{% url 'catalog:tool_detail' tool.id %}" class="btn btn-outline-secondary">
+        <i class="bi bi-house"></i> Retour à la page outil
+    </a>
+    <a href="{% url 'catalog:tool_access_add' tool.id %}" class="btn btn-primary">
+        <i class="bi bi-person-fill-add"></i> Ajouter un utilisateur
+    </a>
+  </div>
+</div>
+{% endblock %}

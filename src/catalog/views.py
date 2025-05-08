@@ -31,6 +31,26 @@ class ToolListView(LoginRequiredMixin, ListView):
         )).distinct()
         return accessible_tools
 
+class ToolAccessListView(LoginRequiredMixin, ListView):
+    """View to display the list of AgriculturalTool"""
+
+    login_url = "/users/login/"
+    model = ToolAccess
+    context_object_name = "all_accesses"
+    template_name = "catalog/tool_access_list.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        tool = self.kwargs.get("tool_id")
+        tool_object = AgriculturalTool.objects.get(id=tool)
+        context["tool"] = tool_object
+        return context
+
+    def get_queryset(self):
+        tool = self.kwargs.get("tool_id")
+        tool_accesses = ToolAccess.objects.filter(tool = tool)
+        return tool_accesses
+
 
 class BorrowCreateView(LoginRequiredMixin, CreateView):
     """View to display BorrowToolForm"""
@@ -154,7 +174,7 @@ class ToolAccessCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy("catalog:index")
+        return reverse_lazy("catalog:tool_access_list", kwargs={'tool_id': self.kwargs.get('tool_id')})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
