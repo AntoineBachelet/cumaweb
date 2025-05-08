@@ -154,20 +154,12 @@ def export_to_excel(request, tool_id):
         start_time = borrow.start_time_borrow
         end_time = borrow.end_time_borrow
         
-        # Calculate duration in hours
-        start_decimal = start_time.hour + (start_time.minute / 60)
-        end_decimal = end_time.hour + (end_time.minute / 60)
-        
-        # If end time is earlier than start time, assume it's the next day
-        if end_decimal < start_decimal:
-            duration = (24 - start_decimal) + end_decimal
-        else:
-            duration = end_decimal - start_decimal
+        duration = end_time - start_time
 
         worksheet[f"A{row}"] = full_name
         worksheet[f"B{row}"] = borrow.date_borrow.strftime("%d/%m/%Y")
-        worksheet[f"C{row}"] = start_time.strftime("%H:%M")
-        worksheet[f"D{row}"] = end_time.strftime("%H:%M")
+        worksheet[f"C{row}"] = start_time
+        worksheet[f"D{row}"] = end_time
         worksheet[f"E{row}"] = duration
 
         row += 1
