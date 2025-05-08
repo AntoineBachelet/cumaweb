@@ -5,15 +5,15 @@ from typing import Any
 
 import openpyxl
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
-from .forms import BorrowToolForm, CreateToolForm
-from .models import AgriculturalTool, BorrowTool
+from .forms import BorrowToolForm, CreateToolForm, ToolAccessForm
+from .models import AgriculturalTool, BorrowTool, ToolAccess
 
 
 class ToolListView(LoginRequiredMixin, ListView):
@@ -26,7 +26,9 @@ class ToolListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user
-        accessible_tools = AgriculturalTool.objects.filter(user_accesses__user=user) | AgriculturalTool.objects.filter(user=user)
+        accessible_tools = (AgriculturalTool.objects.filter(user_accesses__user=user) | AgriculturalTool.objects.filter(
+            user=user
+        )).distinct()
         return accessible_tools
 
 
@@ -78,7 +80,8 @@ class ToolDetailView(LoginRequiredMixin, DetailView):
         # Get all borrows for this tool, ordered by most recent first
         context["borrows"] = BorrowTool.objects.filter(tool=self.object).order_by("-date_borrow", "-start_time_borrow")
         return context
-    
+
+
 class ToolUpdateView(LoginRequiredMixin, UpdateView):
     """View to display CreateToolForm"""
 
@@ -128,6 +131,37 @@ class ToolCreateView(LoginRequiredMixin, CreateView):
         return super().form_invalid(form)
 
 
+class ToolAccessCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """View to display ToolAccessForm"""
+
+    model = ToolAccess
+    form_class = ToolAccessForm
+    template_name = "catalog/tool_access_form.html"
+
+    def test_func(self):
+        """Check if user is the owner of the tool or is staff with UserPassesTestMixin"""
+        tool = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        return self.request.user == tool.user or self.request.user.is_staff
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["tool"] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.tool = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        messages.success(self.request, f"Accès accordé à {form.instance.user.username}")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("catalog:index")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["tool"] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        return context
+
+
 def export_to_excel(request, tool_id):
     """Function to export to Excel the list of borrows for a given tool"""
     # Get the tool
@@ -158,7 +192,7 @@ def export_to_excel(request, tool_id):
         # Get start and end times
         start_time = borrow.start_time_borrow
         end_time = borrow.end_time_borrow
-        
+
         duration = end_time - start_time
 
         worksheet[f"A{row}"] = full_name

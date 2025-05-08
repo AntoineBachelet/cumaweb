@@ -16,7 +16,7 @@ class AgriculturalTool(models.Model):
     description = models.TextField()
     image = models.ImageField(upload_to="images/", default=None, blank=True, null=True)
     # when the user is delete, it is set to null
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="manager_tool")
 
 
 class BorrowTool(models.Model):
