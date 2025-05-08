@@ -10,7 +10,7 @@ from .forms import CreateUserForm
 
 class CreateUserView(LoginRequiredMixin, CreateView):
     """View to create a new User"""
-    login_url = "/users/login"
+    login_url = "/users/login/"
     form_class = CreateUserForm
     model = User
     template_name = "users/createUser.html"

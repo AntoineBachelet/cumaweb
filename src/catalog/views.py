@@ -19,7 +19,7 @@ from .models import AgriculturalTool, BorrowTool
 class ToolListView(LoginRequiredMixin, ListView):
     """View to display the list of AgriculturalTool"""
 
-    login_url = "/users/login"
+    login_url = "/users/login/"
     model = AgriculturalTool
     context_object_name = "all_tools"
     template_name = "catalog/index.html"
@@ -28,7 +28,7 @@ class ToolListView(LoginRequiredMixin, ListView):
 class BorrowCreateView(LoginRequiredMixin, CreateView):
     """View to display BorrowToolForm"""
 
-    login_url = "/users/login"
+    login_url = "/users/login/"
     form_class = BorrowToolForm
     model = BorrowTool
     template_name = "catalog/toolform.html"
@@ -63,7 +63,7 @@ class BorrowCreateView(LoginRequiredMixin, CreateView):
 class ToolDetailView(LoginRequiredMixin, DetailView):
     """View to display the detail of an AgriculturalTool"""
 
-    login_url = "/users/login"
+    login_url = "/users/login/"
     model = AgriculturalTool
     context_object_name = "tool"
     template_name = "catalog/tooldetail.html"
@@ -77,7 +77,7 @@ class ToolDetailView(LoginRequiredMixin, DetailView):
 class ToolUpdateView(LoginRequiredMixin, UpdateView):
     """View to display CreateToolForm"""
 
-    login_url = "/users/login"
+    login_url = "/users/login/"
     form_class = CreateToolForm
     model = AgriculturalTool
     template_name = "catalog/createtoolform.html"
@@ -100,7 +100,7 @@ class ToolUpdateView(LoginRequiredMixin, UpdateView):
 class ToolCreateView(LoginRequiredMixin, CreateView):
     """View to display CreateToolForm"""
 
-    login_url = "/users/login"
+    login_url = "/users/login/"
     form_class = CreateToolForm
     model = AgriculturalTool
     template_name = "catalog/createtoolform.html"
