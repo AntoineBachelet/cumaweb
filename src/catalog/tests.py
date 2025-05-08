@@ -265,7 +265,7 @@ class BorrowToolFormTest(TestCase):
             }
         )
         self.assertIn("end_time_borrow", form.errors)
-        self.assertIn("L'heure de fin ne peut pas être inférieure à l'heure de début", form.errors["end_time_borrow"][0])
+        self.assertIn("L'heure de fin doit être supérieure à l'heure de début", form.errors["end_time_borrow"][0])
 
 
 # Views
