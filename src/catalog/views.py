@@ -10,7 +10,7 @@ from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView, DeleteView
 
 from .forms import BorrowToolForm, CreateToolForm, ToolAccessForm
 from .models import AgriculturalTool, BorrowTool, ToolAccess
@@ -180,6 +180,19 @@ class ToolAccessCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context["tool"] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
         return context
+    
+class ToolAccessDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View to delete access to a tool"""
+    model = ToolAccess
+    template_name = 'catalog/tool_access_confirm_delete.html'
+    
+    def test_func(self):
+        tool_access = self.get_object()
+        return self.request.user == tool_access.tool.user or self.request.user.is_staff
+    
+    def get_success_url(self):
+        messages.success(self.request, f"Accès retiré pour {self.object.user.username}")
+        return reverse_lazy('catalog:tool_access_list', kwargs={'tool_id': self.object.tool.id})
 
 
 def export_to_excel(request, tool_id):
