@@ -16,7 +16,7 @@ class AgriculturalTool(models.Model):
     description = models.TextField()
     image = models.ImageField(upload_to="images/", default=None, blank=True, null=True)
     # when the user is delete, it is set to null
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="manager_tool")
 
 
 class BorrowTool(models.Model):
@@ -35,3 +35,19 @@ class BorrowTool(models.Model):
     start_time_borrow = models.FloatField(help_text="Heures du matériel au début de l'emprunt")
     end_time_borrow = models.FloatField(help_text="Heures du matériel à la fin de l'emprunt")
     comment = models.TextField(null=True)
+
+
+class ToolAccess(models.Model):
+    """
+    Association between users and tools to define access permissions.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tool_accesses")
+    tool = models.ForeignKey(AgriculturalTool, on_delete=models.CASCADE, related_name="user_accesses")
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        """
+        Define a unique constraint on user and tool.
+        """
+        unique_together = ("user", "tool")

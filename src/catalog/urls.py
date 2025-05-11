@@ -11,4 +11,7 @@ urlpatterns = [
     path("<int:pk>/", views.ToolDetailView.as_view(), name="tool_detail"),
     path("<int:pk>/update/", views.ToolUpdateView.as_view(), name="tool_update"),
     path("<int:tool_id>/export/", views.export_to_excel, name="export_tool"),
+    path("<int:tool_id>/accesses/add/", views.ToolAccessCreateView.as_view(), name="tool_access_add"),
+    path("<int:tool_id>/accesses/list/", views.ToolAccessListView.as_view(), name="tool_access_list"),
+    path("access/<int:pk>/delete/", views.ToolAccessDeleteView.as_view(), name="tool_access_delete"),
 ]

@@ -5,15 +5,15 @@ from typing import Any
 
 import openpyxl
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView, DeleteView
 
-from .forms import BorrowToolForm, CreateToolForm
-from .models import AgriculturalTool, BorrowTool
+from .forms import BorrowToolForm, CreateToolForm, ToolAccessForm
+from .models import AgriculturalTool, BorrowTool, ToolAccess
 
 
 class ToolListView(LoginRequiredMixin, ListView):
@@ -23,6 +23,33 @@ class ToolListView(LoginRequiredMixin, ListView):
     model = AgriculturalTool
     context_object_name = "all_tools"
     template_name = "catalog/index.html"
+
+    def get_queryset(self):
+        user = self.request.user
+        accessible_tools = (AgriculturalTool.objects.filter(user_accesses__user=user) | AgriculturalTool.objects.filter(
+            user=user
+        )).distinct()
+        return accessible_tools
+
+class ToolAccessListView(LoginRequiredMixin, ListView):
+    """View to display the list of AgriculturalTool"""
+
+    login_url = "/users/login/"
+    model = ToolAccess
+    context_object_name = "all_accesses"
+    template_name = "catalog/tool_access_list.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        tool = self.kwargs.get("tool_id")
+        tool_object = AgriculturalTool.objects.get(id=tool)
+        context["tool"] = tool_object
+        return context
+
+    def get_queryset(self):
+        tool = self.kwargs.get("tool_id")
+        tool_accesses = ToolAccess.objects.filter(tool = tool)
+        return tool_accesses
 
 
 class BorrowCreateView(LoginRequiredMixin, CreateView):
@@ -73,7 +100,8 @@ class ToolDetailView(LoginRequiredMixin, DetailView):
         # Get all borrows for this tool, ordered by most recent first
         context["borrows"] = BorrowTool.objects.filter(tool=self.object).order_by("-date_borrow", "-start_time_borrow")
         return context
-    
+
+
 class ToolUpdateView(LoginRequiredMixin, UpdateView):
     """View to display CreateToolForm"""
 
@@ -123,6 +151,50 @@ class ToolCreateView(LoginRequiredMixin, CreateView):
         return super().form_invalid(form)
 
 
+class ToolAccessCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """View to display ToolAccessForm"""
+
+    model = ToolAccess
+    form_class = ToolAccessForm
+    template_name = "catalog/tool_access_form.html"
+
+    def test_func(self):
+        """Check if user is the owner of the tool or is staff with UserPassesTestMixin"""
+        tool = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        return self.request.user == tool.user or self.request.user.is_staff
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["tool"] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.tool = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        messages.success(self.request, f"Accès accordé à {form.instance.user.username}")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("catalog:tool_access_list", kwargs={'tool_id': self.kwargs.get('tool_id')})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["tool"] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        return context
+    
+class ToolAccessDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View to delete access to a tool"""
+    model = ToolAccess
+    template_name = 'catalog/tool_access_confirm_delete.html'
+    
+    def test_func(self):
+        tool_access = self.get_object()
+        return self.request.user == tool_access.tool.user or self.request.user.is_staff
+    
+    def get_success_url(self):
+        messages.success(self.request, f"Accès retiré pour {self.object.user.username}")
+        return reverse_lazy('catalog:tool_access_list', kwargs={'tool_id': self.object.tool.id})
+
+
 def export_to_excel(request, tool_id):
     """Function to export to Excel the list of borrows for a given tool"""
     # Get the tool
@@ -153,7 +225,7 @@ def export_to_excel(request, tool_id):
         # Get start and end times
         start_time = borrow.start_time_borrow
         end_time = borrow.end_time_borrow
-        
+
         duration = end_time - start_time
 
         worksheet[f"A{row}"] = full_name

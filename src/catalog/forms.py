@@ -6,7 +6,8 @@ from django import forms
 from django.forms import ModelForm
 from django.db.models import Max
 
-from .models import BorrowTool, AgriculturalTool
+from .models import BorrowTool, AgriculturalTool, ToolAccess
+from django.contrib.auth.models import User
 
 
 class BorrowToolForm(ModelForm):
@@ -24,18 +25,18 @@ class BorrowToolForm(ModelForm):
             "comment": forms.Textarea(attrs={"rows": 2, "cols": 50, "placeholder": "Commentaire"}),
             "tool": forms.HiddenInput(),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super(BorrowToolForm, self).__init__(*args, **kwargs)
-        if self.initial.get('tool'):
-            tool_id = self.initial.get('tool').id
+        if self.initial.get("tool"):
+            tool_id = self.initial.get("tool").id
 
-            latest_return = BorrowTool.objects.filter(
-                tool_id=tool_id
-            ).aggregate(Max('end_time_borrow'))['end_time_borrow__max']
+            latest_return = BorrowTool.objects.filter(tool_id=tool_id).aggregate(Max("end_time_borrow"))[
+                "end_time_borrow__max"
+            ]
 
             if latest_return:
-                self.fields['start_time_borrow'].widget = forms.NumberInput(
+                self.fields["start_time_borrow"].widget = forms.NumberInput(
                     attrs={"step": "0.1", "min": "0", "value": latest_return}
                 )
 
@@ -45,7 +46,7 @@ class BorrowToolForm(ModelForm):
         if date_borrow > datetime.date.today():
             raise forms.ValidationError("La date ne peut pas être dans le futur")
         return date_borrow
-    
+
     def clean_end_time_borrow(self):
         """Validation function for end time of borrow"""
         start_time_borrow = self.cleaned_data["start_time_borrow"]
@@ -77,3 +78,26 @@ class BorrowToolFormUser(BorrowToolForm):
         """Main definition of form"""
 
         exclude = ["user"]  # exclude the user field
+
+
+class ToolAccessForm(forms.ModelForm):
+    """Form used to create a new tool access entry"""
+
+    class Meta:
+        """Main definition of form"""
+
+        model = ToolAccess
+        fields = ["user"]
+
+    def __init__(self, *args, **kwargs):
+        tool = kwargs.pop("tool", None)
+        super().__init__(*args, **kwargs)
+
+        self.fields["user"].label = "Utilisateur"
+        self.fields["user"].help_text = "Sélectionnez l'utilisateur à qui donner accès"
+
+        if tool:
+            existing_users = User.objects.filter(tool_accesses__tool=tool)
+            managers = User.objects.filter(manager_tool=tool)
+            excluded_users = (existing_users | managers).distinct()
+            self.fields["user"].queryset = User.objects.exclude(id__in=excluded_users.values_list("id", flat=True))
