@@ -13,4 +13,5 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
     path("create/", views.CreateUserView.as_view(), name="createUser"),
     path("list/", views.UserListView.as_view(), name="listUser"),
+    path("<int:pk>/edit/", views.UserEditView.as_view(), name="userEdit"),
 ]

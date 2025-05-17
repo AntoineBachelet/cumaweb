@@ -37,7 +37,7 @@
                                 <td>{% if user.is_staff %}Oui{% else %}Non{% endif %}</td>
                                 <td>{% if user.is_superuser %}Oui{% else %}Non{% endif %}</td>
                                 <td>
-                                    {% comment %} <a href="{% url 'users:user_edit' user.id %}" class="btn btn-sm btn-secondary">Modifier</a> {% endcomment %}
+                                    <a href="{% url 'users:userEdit' user.id %}" class="btn btn-sm btn-secondary">Modifier</a>
                                 </td>
                             </tr>
                             {% empty %}
