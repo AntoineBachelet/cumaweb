@@ -38,6 +38,7 @@
                                 <td>{% if user.is_superuser %}Oui{% else %}Non{% endif %}</td>
                                 <td>
                                     <a href="{% url 'users:userEdit' user.id %}" class="btn btn-sm btn-secondary">Modifier</a>
+                                    <a href="{% url 'users:userDelete' user.id %}" class="btn btn-sm btn-danger">Supprimer</a>
                                 </td>
                             </tr>
                             {% empty %}

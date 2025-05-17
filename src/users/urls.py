@@ -14,4 +14,5 @@ urlpatterns = [
     path("create/", views.CreateUserView.as_view(), name="createUser"),
     path("list/", views.UserListView.as_view(), name="listUser"),
     path("<int:pk>/edit/", views.UserEditView.as_view(), name="userEdit"),
+    path("<int:pk>/delete/", views.UserDeleteView.as_view(), name="userDelete"),
 ]
