@@ -42,6 +42,11 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
+          {% if user.is_staff or user.is_superuser %}
+          <li class="nav-item">
+              <a class="nav-link" href="{% url 'users:listUser' %}">Utilisateurs</a>
+          </li>
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'index' %}">Accueil</a>
           </li>

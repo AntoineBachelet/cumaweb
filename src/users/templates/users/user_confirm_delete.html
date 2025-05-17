@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmer suppression d'un utilisateur{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Confirmer la suppression</h3>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Êtes-vous sûr de vouloir supprimer l'utilisateur "{{ object.username }}" ?</h5>
+                    <p class="card-text text-danger">
+                        <strong>Attention :</strong> Cette action est irréversible. Toutes les données associées à cet utilisateur seront perdues.
+                    </p>
+                    
+                    <div class="user-details mt-4 mb-4">
+                        <p><strong>Nom d'utilisateur :</strong> {{ object.username }}</p>
+                        <p><strong>Nom complet :</strong> {{ object.first_name }} {{ object.last_name }}</p>
+                        <p><strong>Email :</strong> {{ object.email }}</p>
+                    </div>
+                    {% if has_dependencies %}
+                    <div class="alert alert-warning mt-3">
+                        <h5>Attention : Cet utilisateur a des dépendances :</h5>
+                        
+                        {% if tools_responsible %}
+                        <p><strong>Outils dont cet utilisateur est responsable :</strong></p>
+                        <ul>
+                            {% for tool in tools_responsible %}
+                            <li>{{ tool.name }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        
+                        {% if borrowings %}
+                        <p><strong>Emprunts d'outils par cet utilisateur :</strong></p>
+                        <ul>
+                            {% for borrow in borrowings %}
+                            <li>{{ borrow.tool.name }} ({{ borrow.date_borrow|date:"d/m/Y" }})</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        
+                        <p>La suppression de cet utilisateur entraînera la suppression de toutes ces dépendances ou leur réattribution à null.</p>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                        <a href="{% url 'users:listUser' %}" class="btn btn-secondary">Annuler</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

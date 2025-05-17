@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Connexion{% endblock %}
+{% block title %}Gestion utilisateur{% endblock %}
 
 {% block content %}
 
@@ -9,13 +9,160 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
+                    {% if not form.instance.pk %}
                     <h3 class="card-title">Inscription d'un nouvel utilisateur</h3>
+                    {% else %}
+                    <h3 class="card-title">Modification d'un utilisateur</h3>
+                    {% endif %}
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" class="mt-4">
                         {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-primary">Inscription</button>
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Nom d'utilisateur -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">Nom d'utilisateur:</label>
+                                    {{ form.username }}
+                                    {% if form.username.help_text %}
+                                    <small class="form-text text-muted">{{ form.username.help_text }}</small>
+                                    {% endif %}
+                                    {% if form.username.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.username.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prénom et Nom -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">Prénom:</label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.first_name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Nom:</label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.last_name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">Adresse email:</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.email.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mots de passe (uniquement pour la création) -->
+                        {% if not form.instance.pk %}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label">Mot de passe:</label>
+                                    {{ form.password1 }}
+                                    {% if form.password1.help_text %}
+                                    <small class="form-text text-muted">{{ form.password1.help_text }}</small>
+                                    {% endif %}
+                                    {% if form.password1.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.password1.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirmation du mot de passe:</label>
+                                    {{ form.password2 }}
+                                    {% if form.password2.help_text %}
+                                    <small class="form-text text-muted">{{ form.password2.help_text }}</small>
+                                    {% endif %}
+                                    {% if form.password2.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.password2.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Permissions -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    {{ form.is_staff }}
+                                    <label for="{{ form.is_staff.id_for_label }}" class="form-check-label">
+                                        Statut Staff
+                                    </label>
+                                    {% if form.is_staff.help_text %}
+                                    <div><small class="form-text text-muted">{{ form.is_staff.help_text }}</small></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    {{ form.is_superuser }}
+                                    <label for="{{ form.is_superuser.id_for_label }}" class="form-check-label">
+                                        Statut Superutilisateur
+                                    </label>
+                                    {% if form.is_superuser.help_text %}
+                                    <div><small class="form-text text-muted">{{ form.is_superuser.help_text }}</small></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            <a href="{% url 'users:listUser' %}" class="btn btn-secondary">Annuler</a>
+                        </div>
                     </form>
                 </div>
             </div>
