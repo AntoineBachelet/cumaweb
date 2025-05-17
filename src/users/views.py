@@ -11,7 +11,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from catalog.models import AgriculturalTool, BorrowTool
 
-from .forms import CreateUserForm
+from .forms import CustomUserCreationForm, CustomUserEditForm
 
 
 def is_admin(user):
@@ -19,42 +19,14 @@ def is_admin(user):
     return user.is_staff or user.is_superuser
 
 
-class CustomUserChangeForm(UserChangeForm):
-    """Form to edit user without password change"""
-
-    class Meta:
-        """Main form class"""
-
-        model = User
-        fields = ["username", "first_name", "last_name", "email", "is_staff", "is_superuser"]
-        widgets = {
-            "username": forms.TextInput(attrs={"class": "form-control"}),
-            "first_name": forms.TextInput(attrs={"class": "form-control"}),
-            "last_name": forms.TextInput(attrs={"class": "form-control"}),
-            "email": forms.EmailInput(attrs={"class": "form-control"}),
-            "is_staff": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "is_superuser": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        }
-        help_texts = {
-            "username": "Requis. 150 caractères maximum. Uniquement des lettres, chiffres et @/./+/-/_.",
-            "is_staff": "Permet à l'utilisateur d'accéder à l'interface d'administration.",
-            "is_superuser": "Donne tous les droits à l'utilisateur sans avoir à les attribuer explicitement.",
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if "password" in self.fields:
-            self.fields.pop("password")
-
-
 class CreateUserView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     """View to create a new User"""
 
     login_url = "/users/login/"
-    form_class = CreateUserForm
+    form_class = CustomUserCreationForm
     model = User
     template_name = "users/createUser.html"
-    success_url = reverse_lazy("index")
+    success_url = reverse_lazy("users:listUser")
 
     def test_func(self):
         return is_admin(self.request.user)
@@ -81,15 +53,14 @@ class UserListView(UserPassesTestMixin, ListView):
 
 class UserEditView(UserPassesTestMixin, UpdateView):
     """View to edit user"""
-
     model = User
-    form_class = CustomUserChangeForm
-    template_name = "users/createUser.html"
-    success_url = reverse_lazy("users:listUser")
-
+    form_class = CustomUserEditForm
+    template_name = 'users/createUser.html'
+    success_url = reverse_lazy('users:listUser')
+    
     def test_func(self):
         return is_admin(self.request.user)
-
+    
     def form_valid(self, form):
         messages.success(self.request, "L'utilisateur a été modifié avec succès.")
         return super().form_valid(form)
