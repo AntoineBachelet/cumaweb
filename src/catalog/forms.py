@@ -101,3 +101,26 @@ class ToolAccessForm(forms.ModelForm):
             managers = User.objects.filter(manager_tool=tool)
             excluded_users = (existing_users | managers).distinct()
             self.fields["user"].queryset = User.objects.exclude(id__in=excluded_users.values_list("id", flat=True))
+
+class DateRangeForm(forms.Form):
+    """Form used to get start and end date for an export"""
+    start_date = forms.DateField(
+        label="Date de début",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        initial=datetime.date.today() - datetime.timedelta(days=30)
+    )
+    end_date = forms.DateField(
+        label="Date de fin",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        initial=datetime.date.today()
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        
+        if start_date and end_date and start_date > end_date:
+            raise forms.ValidationError("La date de début ne peut pas être postérieure à la date de fin")
+        
+        return cleaned_data
