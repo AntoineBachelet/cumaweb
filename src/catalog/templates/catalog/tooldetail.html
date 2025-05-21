@@ -66,9 +66,12 @@
               </div>
               {% if user == tool.user %}
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="{% url 'catalog:export_tool' tool.id %}" class="btn btn-success">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                  Exporter vers Excel
+                </button>
+                {% comment %} <a href="{% url 'catalog:export_tool' tool.id %}" class="btn btn-success">
                   <i class="bi bi-file-excel me-1"></i> Exporter sous Excel
-                </a>
+                </a> {% endcomment %}
                 <a href="{% url 'catalog:tool_access_list' tool.id %}" class="btn btn-primary">
                   Liste des utilisateurs associés
                 </a>
@@ -83,5 +86,38 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exportModalLabel">Exporter les emprunts</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="{% url 'catalog:export_tool' tool.id %}" method="post" id="exportForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="start_date" class="form-label">Date de début</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" 
+                   value="{{ now|date:'Y-m-d' }}">
+          </div>
+          <div class="mb-3">
+            <label for="end_date" class="form-label">Date de fin</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" 
+                   value="{{ now|date:'Y-m-d' }}">
+          </div>
+          <div class="alert alert-danger d-none" id="date-error">
+            La date de début doit être antérieure à la date de fin
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" id="submitExport">Exporter</button>
+      </div>
+    </div>
+  </div>
+</div>
 
   {% endblock %}
