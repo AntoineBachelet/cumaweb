@@ -6,6 +6,7 @@ from typing import Any
 import openpyxl
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -197,6 +198,7 @@ class ToolAccessDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return reverse_lazy('catalog:tool_access_list', kwargs={'tool_id': self.object.tool.id})
 
 
+@login_required
 def export_to_excel(request, tool_id):
     """Function to export to Excel the list of borrows for a given tool"""
     if request.method == 'POST':
