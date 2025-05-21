@@ -66,9 +66,12 @@
               </div>
               {% if user == tool.user %}
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="{% url 'catalog:export_tool' tool.id %}" class="btn btn-success">
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+                   <i class="bi bi-file-excel me-1"></i>Exporter vers Excel
+                </button>
+                {% comment %} <a href="{% url 'catalog:export_tool' tool.id %}" class="btn btn-success">
                   <i class="bi bi-file-excel me-1"></i> Exporter sous Excel
-                </a>
+                </a> {% endcomment %}
                 <a href="{% url 'catalog:tool_access_list' tool.id %}" class="btn btn-primary">
                   Liste des utilisateurs associés
                 </a>
@@ -83,5 +86,81 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exportModalLabel">Exporter les emprunts</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form action="{% url 'catalog:export_tool' tool.id %}" method="post" id="exportForm">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="start_date" class="form-label">Date de début</label>
+              <input type="date" class="form-control" id="start_date" name="start_date" 
+                    value="{{ now_minus_30_days|date:'Y-m-d' }}">
+            </div>
+            <div class="mb-3">
+              <label for="end_date" class="form-label">Date de fin</label>
+              <input type="date" class="form-control" id="end_date" name="end_date" 
+                    value="{{ now|date:'Y-m-d' }}">
+            </div>
+            <div class="alert alert-danger d-none" id="date-error">
+              La date de début doit être antérieure à la date de fin
+            </div>
+            <div class="alert alert-danger d-none" id="date-format-error">
+              Veuillez indiquer deux dates correctes et non nulles
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-primary" id="submitExport">Exporter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Bouton de soumission du formulaire d'export
+    const submitExportBtn = document.getElementById('submitExport');
+    const exportForm = document.getElementById('exportForm');
+    const dateError = document.getElementById('date-error');
+    const dateFormatError = document.getElementById('date-format-error');
+    
+    if (submitExportBtn && exportForm) {
+      submitExportBtn.addEventListener('click', function() {
+        // Validation des dates
+        const startDate = new Date(document.getElementById('start_date').value);
+        const endDate = new Date(document.getElementById('end_date').value);
+        
+        if (startDate > endDate) {
+          dateError.classList.remove('d-none');
+          return;
+        }
+
+        if (!isNaN(startDate.getTime()) || !isNaN(endDate.getTime())) {
+          dateFormatError.classList.remove('d-none');
+          return;
+        }
+        console.log(startDate, endDate);
+        
+        dateError.classList.add('d-none');
+        //exportForm.submit();
+      });
+    }
+    
+    // Cacher le message d'erreur quand les dates changent
+    document.getElementById('start_date')?.addEventListener('change', function() {
+      dateError.classList.add('d-none');
+    });
+    
+    document.getElementById('end_date')?.addEventListener('change', function() {
+      dateError.classList.add('d-none');
+    });
+  });
+  </script>
 
   {% endblock %}

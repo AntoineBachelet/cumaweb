@@ -6,13 +6,14 @@ from typing import Any
 import openpyxl
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, DeleteView
 
-from .forms import BorrowToolForm, CreateToolForm, ToolAccessForm
+from .forms import BorrowToolForm, CreateToolForm, ToolAccessForm, DateRangeForm
 from .models import AgriculturalTool, BorrowTool, ToolAccess
 
 
@@ -99,6 +100,8 @@ class ToolDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         # Get all borrows for this tool, ordered by most recent first
         context["borrows"] = BorrowTool.objects.filter(tool=self.object).order_by("-date_borrow", "-start_time_borrow")
+        context['now'] = datetime.date.today()
+        context['now_minus_30_days'] = datetime.date.today() - datetime.timedelta(days=30)
         return context
 
 
@@ -195,71 +198,82 @@ class ToolAccessDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return reverse_lazy('catalog:tool_access_list', kwargs={'tool_id': self.object.tool.id})
 
 
+@login_required
 def export_to_excel(request, tool_id):
     """Function to export to Excel the list of borrows for a given tool"""
-    # Get the tool
-    tool = get_object_or_404(AgriculturalTool, pk=tool_id)
+    if request.method == 'POST':
+        form = DateRangeForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            # Get the tool
+            tool = get_object_or_404(AgriculturalTool, pk=tool_id)
 
-    # Get all borrows for this tool
-    borrows = BorrowTool.objects.filter(tool=tool).order_by("-date_borrow", "-start_time_borrow")
+            # Get all borrows for this tool
+            borrows = BorrowTool.objects.filter(
+                tool=tool,
+                date_borrow__gte=start_date,
+                date_borrow__lte=end_date
+            ).order_by("-date_borrow", "-start_time_borrow")
 
-    # Create a new Excel workbook
-    workbook = openpyxl.Workbook()
-    worksheet = workbook.active
+            # Create a new Excel workbook
+            workbook = openpyxl.Workbook()
+            worksheet = workbook.active
 
-    # Set headers
-    worksheet["A1"] = "Nom Prénom"
-    worksheet["B1"] = "Date"
-    worksheet["C1"] = "Heure début"
-    worksheet["D1"] = "Heure fin"
-    worksheet["E1"] = "Durée (heures)"
-    worksheet["F1"] = "Nom"
-    worksheet["G1"] = "Total Heures par Personne"
+            # Set headers
+            worksheet["A1"] = "Nom Prénom"
+            worksheet["B1"] = "Date"
+            worksheet["C1"] = "Heure début"
+            worksheet["D1"] = "Heure fin"
+            worksheet["E1"] = "Durée (heures)"
+            worksheet["F1"] = "Nom"
+            worksheet["G1"] = "Total Heures par Personne"
 
-    # Fill data
-    row = 2
-    for borrow in borrows:
-        # Get full name or username
-        full_name = borrow.user.get_full_name() if borrow.user.get_full_name() else borrow.user.username
+            # Fill data
+            row = 2
+            for borrow in borrows:
+                # Get full name or username
+                full_name = borrow.user.get_full_name() if borrow.user.get_full_name() else borrow.user.username
 
-        # Get start and end times
-        start_time = borrow.start_time_borrow
-        end_time = borrow.end_time_borrow
+                # Get start and end times
+                start_time = borrow.start_time_borrow
+                end_time = borrow.end_time_borrow
 
-        duration = end_time - start_time
+                duration = end_time - start_time
 
-        worksheet[f"A{row}"] = full_name
-        worksheet[f"B{row}"] = borrow.date_borrow.strftime("%d/%m/%Y")
-        worksheet[f"C{row}"] = start_time
-        worksheet[f"D{row}"] = end_time
-        worksheet[f"E{row}"] = duration
+                worksheet[f"A{row}"] = full_name
+                worksheet[f"B{row}"] = borrow.date_borrow.strftime("%d/%m/%Y")
+                worksheet[f"C{row}"] = start_time
+                worksheet[f"D{row}"] = end_time
+                worksheet[f"E{row}"] = duration
 
-        row += 1
+                row += 1
 
-    # Get unique names
-    distinct_names = set()
-    for borrow in borrows:
-        distinct_names.add(borrow.user.get_full_name() if borrow.user.get_full_name() else borrow.user.username)
+            # Get unique names
+            distinct_names = set()
+            for borrow in borrows:
+                distinct_names.add(borrow.user.get_full_name() if borrow.user.get_full_name() else borrow.user.username)
 
-    # Add formulas for summing hours by person
-    row = 2
-    for name in distinct_names:
-        worksheet[f"F{row}"] = name
-        worksheet[f"G{row}"] = f'=SUMIFS(E:E, A:A, "{name}")'
-        row += 1
+            # Add formulas for summing hours by person
+            row = 2
+            for name in distinct_names:
+                worksheet[f"F{row}"] = name
+                worksheet[f"G{row}"] = f'=SUMIFS(E:E, A:A, "{name}")'
+                row += 1
 
-    # Format the filename
-    today = datetime.date.today().strftime("%d_%m_%Y")
-    filename = f"{tool.name}_{today}.xlsx"
+            # Format the filename
+            today = datetime.date.today().strftime("%d_%m_%Y")
+            filename = f"{tool.name}_{today}.xlsx"
 
-    # Prepare the response
-    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+            # Prepare the response
+            response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
-    # Save the workbook to the response
-    workbook.save(response)
+            # Save the workbook to the response
+            workbook.save(response)
 
-    return response
+            return response
+    return HttpResponse("Méthode non autorisée", status=405)
 
 
 # @login_required

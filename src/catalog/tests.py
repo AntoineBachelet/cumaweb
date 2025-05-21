@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from catalog.forms import BorrowToolForm, CreateToolForm, ToolAccessForm
+from catalog.forms import BorrowToolForm, CreateToolForm, ToolAccessForm, DateRangeForm
 from catalog.models import AgriculturalTool, BorrowTool, ToolAccess
 
 # Models
@@ -501,6 +501,114 @@ class ToolAccessFormTest(TestCase):
         self.assertIn("user", form.errors)
 
 
+class DateRangeFormTest(TestCase):
+    """Unit tests for the DateRangeForm"""
+    
+    def test_form_fields(self):
+        """Test if form fields are correct"""
+        form = DateRangeForm()
+        self.assertTrue("start_date" in form.fields)
+        self.assertTrue("end_date" in form.fields)
+
+    def test_empty_form_validation(self):
+        """Test if empty form is rejected"""
+        form = DateRangeForm(data={})
+        self.assertFalse(form.is_valid())
+        
+        self.assertIn("start_date", form.errors)
+        self.assertIn("This field is required.", form.errors["start_date"][0])
+        
+        self.assertIn("end_date", form.errors)
+        self.assertIn("This field is required.", form.errors["end_date"][0])
+        
+        self.assertEqual(len(form.errors), 2)
+
+    def test_form_labels(self):
+        """Test if form labels are set correctly"""
+        form = DateRangeForm()
+        self.assertEqual(form.fields["start_date"].label, "Date de début")
+        self.assertEqual(form.fields["end_date"].label, "Date de fin")
+
+    def test_initial_values(self):
+        """Test if initial values are set correctly"""
+        form = DateRangeForm()
+        today = datetime.date.today()
+        thirty_days_ago = today - datetime.timedelta(days=30)
+        
+        self.assertEqual(form.fields["start_date"].initial, thirty_days_ago)
+        self.assertEqual(form.fields["end_date"].initial, today)
+
+    def test_valid_form_submission(self):
+        """Test valid form submission"""
+        today = datetime.date.today()
+        yesterday = today - datetime.timedelta(days=1)
+        
+        form = DateRangeForm(data={
+            "start_date": yesterday.strftime("%Y-%m-%d"),
+            "end_date": today.strftime("%Y-%m-%d")
+        })
+        
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data["start_date"], yesterday)
+        self.assertEqual(form.cleaned_data["end_date"], today)
+
+    def test_start_date_after_end_date(self):
+        """Test submission with start date after end date"""
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+        
+        form = DateRangeForm(data={
+            "start_date": tomorrow.strftime("%Y-%m-%d"),
+            "end_date": today.strftime("%Y-%m-%d")
+        })
+        
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        self.assertIn("La date de début ne peut pas être postérieure à la date de fin", form.errors["__all__"][0])
+
+    def test_same_start_and_end_date(self):
+        """Test submission with same start and end date"""
+        today = datetime.date.today()
+        
+        form = DateRangeForm(data={
+            "start_date": today.strftime("%Y-%m-%d"),
+            "end_date": today.strftime("%Y-%m-%d")
+        })
+        
+        self.assertTrue(form.is_valid())
+
+    def test_invalid_date_format(self):
+        """Test submission with invalid date format"""
+        form = DateRangeForm(data={
+            "start_date": "not-a-date",
+            "end_date": datetime.date.today().strftime("%Y-%m-%d")
+        })
+        
+        self.assertFalse(form.is_valid())
+        self.assertIn("start_date", form.errors)
+        
+        form = DateRangeForm(data={
+            "start_date": datetime.date.today().strftime("%Y-%m-%d"),
+            "end_date": "also-not-a-date"
+        })
+        
+        self.assertFalse(form.is_valid())
+        self.assertIn("end_date", form.errors)
+
+    def test_future_dates(self):
+        """Test submission with future dates (which should be valid)"""
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+        day_after_tomorrow = today + datetime.timedelta(days=2)
+        
+        form = DateRangeForm(data={
+            "start_date": tomorrow.strftime("%Y-%m-%d"),
+            "end_date": day_after_tomorrow.strftime("%Y-%m-%d")
+        })
+        
+        self.assertTrue(form.is_valid())
+
+
 # Views
 class ToolListViewTest(TestCase):
     """Unit tests for the views"""
@@ -510,7 +618,7 @@ class ToolListViewTest(TestCase):
         ["/catalog/create_tool/", "catalog:create_tool", {}, "catalog/createtoolform.html"],
         ["/catalog/1/borrow/", "catalog:borrow_tool", {"tool_id": 1}, "catalog/toolform.html"],
         ["/catalog/1/", "catalog:tool_detail", {"pk": 1}, "catalog/tooldetail.html"],
-        ["/catalog/1/export/", "catalog:export_tool", {"tool_id": 1}, None],
+        # ["/catalog/1/export/", "catalog:export_tool", {"tool_id": 1}, None],
         ["/catalog/1/accesses/add/", "catalog:tool_access_add", {"tool_id": 1}, "catalog/tool_access_form.html"],
         ["/catalog/1/accesses/list/", "catalog:tool_access_list", {"tool_id": 1}, "catalog/tool_access_list.html"],
         ["/catalog/access/1/delete/", "catalog:tool_access_delete", {"pk": 1}, "catalog/tool_access_confirm_delete.html"],
@@ -562,21 +670,174 @@ class ToolListViewTest(TestCase):
         test_user = User.objects.get(username="testuser")
         test_tool = AgriculturalTool.objects.get(id=1)
 
-        # Create a few borrows
+        # Create a few borrows with different dates
+        today = datetime.date.today()
+        yesterday = today - datetime.timedelta(days=1)
+        last_week = today - datetime.timedelta(days=7)
+        
         BorrowTool.objects.create(
             tool=test_tool,
             user=test_user,
-            date_borrow=datetime.date.today(),
+            date_borrow=today,
             start_time_borrow=140,
             end_time_borrow=150.2,
-            comment="Test borrow",
+            comment="Test borrow today",
+        )
+        
+        BorrowTool.objects.create(
+            tool=test_tool,
+            user=test_user,
+            date_borrow=yesterday,
+            start_time_borrow=130,
+            end_time_borrow=135.5,
+            comment="Test borrow yesterday",
+        )
+        
+        BorrowTool.objects.create(
+            tool=test_tool,
+            user=test_user,
+            date_borrow=last_week,
+            start_time_borrow=90,
+            end_time_borrow=100,
+            comment="Test borrow last week",
         )
 
-        # Test the export URL
-        response = self.client.get(reverse("catalog:export_tool", kwargs={"tool_id": 1}))
+        # Test the export URL with POST and date range
+        start_date = (today - datetime.timedelta(days=3)).strftime('%Y-%m-%d')
+        end_date = today.strftime('%Y-%m-%d')
+        
+        response = self.client.post(
+            reverse("catalog:export_tool", kwargs={"tool_id": 1}),
+            data={
+                'start_date': start_date,
+                'end_date': end_date
+            }
+        )
 
         # Check if response has the correct status code
         self.assertEqual(response.status_code, 200)
 
         # Verify the content type is correct for an Excel file
         self.assertEqual(response["Content-Type"], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        
+        # Check the header in Content-Disposition contains the tool name and today's date
+        self.assertTrue(f'attachment; filename="{test_tool.name}_{today.strftime("%d_%m_%Y")}.xlsx"' in response["Content-Disposition"])
+        
+        # Verify the content is not empty
+        self.assertTrue(len(response.content) > 0)
+        
+        # Optional: Parse the Excel file to verify content
+        # This requires additional setup but is possible with openpyxl
+        
+    def test_export_date_validation(self):
+        """Test if the export function validates date ranges properly"""
+        # Test with invalid date range (start date after end date)
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+        
+        response = self.client.post(
+            reverse("catalog:export_tool", kwargs={"tool_id": 1}),
+            data={
+                'start_date': tomorrow.strftime('%Y-%m-%d'),
+                'end_date': today.strftime('%Y-%m-%d')
+            }
+        )
+        
+        # Should return 200 because the form handles the validation error
+        # and returns a form with errors
+        self.assertEqual(response.status_code, 405)  # Assuming your view returns 405 for invalid form
+
+    def test_export_empty_result(self):
+        """Test export with a date range that has no borrows"""
+        test_tool = AgriculturalTool.objects.get(id=1)
+        
+        # Use a date range where no borrows exist
+        last_year = datetime.date.today() - datetime.timedelta(days=365)
+        last_year_plus_week = last_year + datetime.timedelta(days=7)
+        
+        response = self.client.post(
+            reverse("catalog:export_tool", kwargs={"tool_id": 1}),
+            data={
+                'start_date': last_year.strftime('%Y-%m-%d'),
+                'end_date': last_year_plus_week.strftime('%Y-%m-%d')
+            }
+        )
+        
+        # Should still return a valid Excel file, just with no data rows
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        
+        # Verify the header contains the expected filename
+        today = datetime.date.today()
+        self.assertTrue(f'attachment; filename="{test_tool.name}_{today.strftime("%d_%m_%Y")}.xlsx"' in response["Content-Disposition"])
+
+    def test_export_access_permission(self):
+        """Test if non-logged in users are redirected"""
+        # Logout the user
+        self.client.logout()
+        
+        response = self.client.post(
+            reverse("catalog:export_tool", kwargs={"tool_id": 1}),
+            data={
+                'start_date': datetime.date.today().strftime('%Y-%m-%d'),
+                'end_date': datetime.date.today().strftime('%Y-%m-%d')
+            }
+        )
+        
+        self.assertEqual(response.status_code, 302)  
+        self.assertTrue('/login/' in response.url)  # Adjust path as needed
+
+    def test_get_method_not_allowed(self):
+        """Test that GET method is not allowed for export"""
+        response = self.client.get(reverse("catalog:export_tool", kwargs={"tool_id": 1}))
+        
+        # Your view returns 405 Method Not Allowed for GET requests
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.content.decode(), "Méthode non autorisée")
+
+    def test_export_with_multiple_users(self):
+        """Test export with borrows from multiple users"""
+        test_user = User.objects.get(username="testuser")
+        test_tool = AgriculturalTool.objects.get(id=1)
+        
+        # Create another user
+        second_user = User.objects.create_user(
+            username="seconduser", 
+            password="secondpassword",
+            first_name="Second",
+            last_name="User"
+        )
+        
+        today = datetime.date.today()
+        
+        # Create borrows for both users
+        BorrowTool.objects.create(
+            tool=test_tool,
+            user=test_user,
+            date_borrow=today,
+            start_time_borrow=140,
+            end_time_borrow=150,
+            comment="Test user borrow",
+        )
+        
+        BorrowTool.objects.create(
+            tool=test_tool,
+            user=second_user,
+            date_borrow=today,
+            start_time_borrow=160,
+            end_time_borrow=170,
+            comment="Second user borrow",
+        )
+        
+        response = self.client.post(
+            reverse("catalog:export_tool", kwargs={"tool_id": 1}),
+            data={
+                'start_date': today.strftime('%Y-%m-%d'),
+                'end_date': today.strftime('%Y-%m-%d')
+            }
+        )
+        
+        # Check response is valid
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    
