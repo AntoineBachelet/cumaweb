@@ -140,15 +140,13 @@
           dateError.classList.remove('d-none');
           return;
         }
-
-        if (!isNaN(startDate.getTime()) || !isNaN(endDate.getTime())) {
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
           dateFormatError.classList.remove('d-none');
           return;
         }
-        console.log(startDate, endDate);
         
         dateError.classList.add('d-none');
-        //exportForm.submit();
+        exportForm.submit();
       });
     }
     
