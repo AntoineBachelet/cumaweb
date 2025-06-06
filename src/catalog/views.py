@@ -70,6 +70,7 @@ class BorrowCreateView(LoginRequiredMixin, CreateView):
     def get_initial(self):
         initial = super().get_initial()
         initial["tool"] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        initial["user"] = self.request.user
         return initial
     
     def get_form_kwargs(self):
