@@ -34,7 +34,7 @@ class BorrowTool(models.Model):
     date_borrow = models.DateField()
     start_time_borrow = models.FloatField(help_text="Heures du matériel au début de l'emprunt")
     end_time_borrow = models.FloatField(help_text="Heures du matériel à la fin de l'emprunt")
-    comment = models.TextField(null=True)
+    comment = models.TextField(null=True, blank=True)
 
 
 class ToolAccess(models.Model):

@@ -27,7 +27,19 @@ class BorrowToolForm(ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super(BorrowToolForm, self).__init__(*args, **kwargs)
+        self.user = kwargs.pop('user', None)
+        self.tool = kwargs.pop('tool', None)
+        super().__init__(*args, **kwargs)
+        
+        # Personnaliser le queryset du champ user
+        if self.user and self.tool:
+            # Si l'utilisateur connecté n'est pas le responsable de l'outil,
+            # limiter les choix à l'utilisateur connecté uniquement
+            if self.user != self.tool.user:
+                self.fields['user'].queryset = User.objects.filter(id=self.user.id)
+            else:
+                # Si l'utilisateur est responsable, il peut voir tous les utilisateurs
+                self.fields['user'].queryset = User.objects.all()
         if self.initial.get("tool"):
             tool_id = self.initial.get("tool").id
 

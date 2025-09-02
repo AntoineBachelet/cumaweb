@@ -70,7 +70,15 @@ class BorrowCreateView(LoginRequiredMixin, CreateView):
     def get_initial(self):
         initial = super().get_initial()
         initial["tool"] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        initial["user"] = self.request.user
         return initial
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Passer l'utilisateur connecté et l'outil au formulaire
+        kwargs['user'] = self.request.user
+        kwargs['tool'] = get_object_or_404(AgriculturalTool, pk=self.kwargs.get("tool_id"))
+        return kwargs
 
     def form_valid(self, form):
         messages.success(self.request, "L'utilisation de l'outil est bien enregistrée. Merci !")
