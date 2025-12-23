@@ -72,7 +72,12 @@
                   <div class="invalid-feedback d-block">{{ form.end_time_borrow.errors }}</div>
                 {% endif %}
               </div>
+              <div class="col-md-6">
+                <label for="total_hours_borrowed" class="form-label">Total heures empruntées</label>
+                <input type="text" id="total_hours_borrowed" class="form-control" readonly value="0h00">
+              </div>
             </div>
+            
             
             <div class="mb-3">
               <label for="{{ form.comment.id_for_label }}" class="form-label">Commentaire</label>
@@ -96,4 +101,31 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const startTimeInput = document.getElementById('{{ form.start_time_borrow.id_for_label }}');
+  const endTimeInput = document.getElementById('{{ form.end_time_borrow.id_for_label }}');
+  const totalHoursInput = document.getElementById('total_hours_borrowed');
+
+  function calculateTotalHours() {
+    const startTime = startTimeInput.value;
+    const endTime = endTimeInput.value;
+
+    if (startTime && endTime) {
+      totalHoursInput.value = `${(endTime - startTime).toFixed(2)}`;
+    } else {
+      totalHoursInput.value = '0';
+    }
+  }
+
+  startTimeInput.addEventListener('change', calculateTotalHours);
+  endTimeInput.addEventListener('change', calculateTotalHours);
+  startTimeInput.addEventListener('input', calculateTotalHours);
+  endTimeInput.addEventListener('input', calculateTotalHours);
+
+  // Calculate on page load if values exist
+  calculateTotalHours();
+});
+</script>
 {% endblock %}
