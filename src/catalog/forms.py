@@ -20,8 +20,8 @@ class BorrowToolForm(ModelForm):
         fields = ["tool", "user", "date_borrow", "start_time_borrow", "end_time_borrow", "comment"]
         widgets = {
             "date_borrow": forms.DateInput(attrs={"type": "date", "value": datetime.date.today()}),
-            "start_time_borrow": forms.NumberInput(attrs={"step": "0.1", "min": "0"}),
-            "end_time_borrow": forms.NumberInput(attrs={"step": "0.1", "min": "0"}),
+            "start_time_borrow": forms.NumberInput(attrs={"step": "0.01", "min": "0"}),
+            "end_time_borrow": forms.NumberInput(attrs={"step": "0.01", "min": "0"}),
             "comment": forms.Textarea(attrs={"rows": 2, "cols": 50, "placeholder": "Commentaire"}),
             "tool": forms.HiddenInput(),
         }
@@ -49,7 +49,7 @@ class BorrowToolForm(ModelForm):
 
             if latest_return:
                 self.fields["start_time_borrow"].widget = forms.NumberInput(
-                    attrs={"step": "0.1", "min": "0", "value": latest_return}
+                    attrs={"step": "0.01", "min": "0", "value": latest_return}
                 )
 
     def clean_date_borrow(self):
