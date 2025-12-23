@@ -307,6 +307,9 @@ def export_to_excel(request, tool_id):
                 worksheet[f"G{row}"] = f'=SUMIFS(E:E, A:A, "{name}")'
                 row += 1
 
+            worksheet[f"F{row}"] = 'TOTAL'
+            worksheet[f"G{row}"] = f'=SUM(G2:G{row-1})'
+
             # Format the filename
             today = datetime.date.today().strftime("%d_%m_%Y")
             filename = f"{tool.name}_{today}.xlsx"
