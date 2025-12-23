@@ -43,6 +43,9 @@
                           <th>Heure fin</th>
                           <th>Utilisateur</th>
                           <th>Commentaire</th>
+                          {% if user == tool.user or user.is_staff %}
+                          <th>Actions</th>
+                          {% endif %}
                         </tr>
                       </thead>
                       <tbody>
@@ -53,6 +56,13 @@
                             <td>{{ borrow.end_time_borrow }}</td>
                             <td>{{ borrow.user.get_full_name|default:borrow.user.username }}</td>
                             <td>{{ borrow.comment|default:"-" }}</td>
+                            {% if user == tool.user or user.is_staff %}
+                            <td>
+                              <a href="{% url 'catalog:borrow_update' borrow.id %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil"></i> Éditer
+                              </a>
+                            </td>
+                            {% endif %}
                           </tr>
                         {% endfor %}
                       </tbody>
