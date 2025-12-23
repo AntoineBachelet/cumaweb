@@ -369,7 +369,7 @@ class BorrowToolFormTest(TestCase):
         self.assertIn("end_time_borrow", form.errors)
         self.assertIn("This field is required.", form.errors["end_time_borrow"][0])
 
-        self.assertEqual(len(form.errors), 6)
+        self.assertEqual(len(form.errors), 5)
 
     def test_clean_date_borrow(self):
         """Test if form fields are correct"""
