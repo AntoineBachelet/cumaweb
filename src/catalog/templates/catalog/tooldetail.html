@@ -41,6 +41,7 @@
                           <th>Date</th>
                           <th>Heure début</th>
                           <th>Heure fin</th>
+                          <th>Temps utilisé</th>
                           <th>Utilisateur</th>
                           <th>Commentaire</th>
                           {% if user == tool.user or user.is_staff %}
@@ -54,6 +55,7 @@
                             <td>{{ borrow.date_borrow|date:"d/m/Y" }}</td>
                             <td>{{ borrow.start_time_borrow }}</td>
                             <td>{{ borrow.end_time_borrow }}</td>
+                            <td>{{ borrow.get_duration|floatformat:2 }}</td>
                             <td>{{ borrow.user.get_full_name|default:borrow.user.username }}</td>
                             <td>{{ borrow.comment|default:"-" }}</td>
                             {% if user == tool.user or user.is_staff %}

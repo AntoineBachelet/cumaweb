@@ -36,6 +36,13 @@ class BorrowTool(models.Model):
     end_time_borrow = models.FloatField(help_text="Heures du matériel à la fin de l'emprunt")
     comment = models.TextField(null=True, blank=True)
 
+    def get_duration(self):
+        """Retourne la durée de l'emprunt"""
+        if not self.start_time_borrow or not self.end_time_borrow:
+            return "-"
+        diff = self.end_time_borrow - self.start_time_borrow
+        return diff
+
 
 class ToolAccess(models.Model):
     """
