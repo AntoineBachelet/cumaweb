@@ -74,6 +74,7 @@
                     </table>
                   </div>
 
+                  {% if user == tool.user or user.is_staff %}
                   {% for borrow in borrows %}
                   <!-- Modal de confirmation de suppression pour chaque emprunt -->
                   <div class="modal fade" id="deleteModal{{ borrow.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ borrow.id }}" aria-hidden="true">
@@ -107,6 +108,7 @@
                     </div>
                   </div>
                   {% endfor %}
+                  {% endif %}
                 {% else %}
                   <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i> Cet outil n'a pas encore été emprunté.
