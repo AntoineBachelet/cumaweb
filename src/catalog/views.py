@@ -96,6 +96,60 @@ class BorrowCreateView(LoginRequiredMixin, CreateView):
         return super().form_invalid(form)
 
 
+class BorrowUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """View to update a BorrowTool"""
+
+    login_url = "/users/login/"
+    form_class = BorrowToolForm
+    model = BorrowTool
+    template_name = "catalog/toolform.html"
+
+    def test_func(self):
+        """Check if user is the owner of the tool or is staff"""
+        borrow = self.get_object()
+        return self.request.user == borrow.tool.user or self.request.user.is_staff
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["tool"] = self.object.tool
+        context["is_update"] = True
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy("catalog:tool_detail", kwargs={"pk": self.object.tool.id})
+
+    def form_valid(self, form):
+        messages.success(self.request, "L'emprunt a été modifié avec succès !")
+        return super().form_valid(form)
+
+    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+        messages.error(self.request, "Il y a une erreur dans le formulaire. Merci de vérifier les informations.")
+
+        # Ajouter des messages spécifiques pour chaque erreur de champ
+        for field, errors in form.errors.items():
+            for error in errors:
+                field_name = form.fields[field].label or field
+                messages.error(self.request, f"Erreur dans le champ '{field_name}': {error}")
+
+        return super().form_invalid(form)
+
+
+class BorrowDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View to delete a BorrowTool"""
+
+    login_url = "/users/login/"
+    model = BorrowTool
+
+    def test_func(self):
+        """Check if user is the owner of the tool or is staff"""
+        borrow = self.get_object()
+        return self.request.user == borrow.tool.user or self.request.user.is_staff
+
+    def get_success_url(self):
+        messages.success(self.request, "L'utilisation a été supprimée avec succès !")
+        return reverse_lazy("catalog:tool_detail", kwargs={"pk": self.object.tool.id})
+
+
 class ToolDetailView(LoginRequiredMixin, DetailView):
     """View to display the detail of an AgriculturalTool"""
 
@@ -268,6 +322,9 @@ def export_to_excel(request, tool_id):
                 worksheet[f"F{row}"] = name
                 worksheet[f"G{row}"] = f'=SUMIFS(E:E, A:A, "{name}")'
                 row += 1
+
+            worksheet[f"F{row}"] = 'TOTAL'
+            worksheet[f"G{row}"] = f'=SUM(G2:G{row-1})'
 
             # Format the filename
             today = datetime.date.today().strftime("%d_%m_%Y")

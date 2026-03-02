@@ -41,7 +41,9 @@ class BorrowToolForm(ModelForm):
                 # Si l'utilisateur est responsable, il peut voir tous les utilisateurs
                 self.fields['user'].queryset = User.objects.all()
         if self.initial.get("tool"):
-            tool_id = self.initial.get("tool").id
+            tool = self.initial.get("tool")
+            # Handle both cases: tool can be an object or an integer ID
+            tool_id = tool.id if hasattr(tool, 'id') else tool
 
             latest_return = BorrowTool.objects.filter(tool_id=tool_id).aggregate(Max("end_time_borrow"))[
                 "end_time_borrow__max"

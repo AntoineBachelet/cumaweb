@@ -838,4 +838,378 @@ class ToolListViewTest(TestCase):
         # Check response is valid
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    
+
+
+class BorrowDeleteViewTest(TestCase):
+    """Unit tests for the BorrowDeleteView"""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up test data for all test methods"""
+        # Create users
+        cls.owner_user = User.objects.create_user(username="owner", password="ownerpass")
+        cls.staff_user = User.objects.create_user(username="staff", password="staffpass", is_staff=True)
+        cls.normal_user = User.objects.create_user(username="normal", password="normalpass")
+        cls.borrower_user = User.objects.create_user(username="borrower", password="borrowerpass")
+
+        # Create a tool owned by owner_user
+        cls.test_tool = AgriculturalTool.objects.create(
+            name="Test Tool",
+            description="A tool for testing",
+            user=cls.owner_user,
+        )
+
+        # Create a borrow by borrower_user
+        cls.test_borrow = BorrowTool.objects.create(
+            tool=cls.test_tool,
+            user=cls.borrower_user,
+            date_borrow=datetime.date(2025, 1, 15),
+            start_time_borrow=140,
+            end_time_borrow=150,
+            comment="Test borrow for deletion",
+        )
+
+    def test_delete_url_exists(self):
+        """Test if the delete URL exists"""
+        self.client.login(username="owner", password="ownerpass")
+        response = self.client.post(f"/catalog/borrow/{self.test_borrow.id}/delete/")
+        # Should redirect after successful deletion
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(f"/catalog/{self.test_tool.id}/", response['Location'])
+
+    def test_delete_url_accessible_by_name(self):
+        """Test if delete URL is accessible by its name"""
+        self.client.login(username="owner", password="ownerpass")
+        response = self.client.post(reverse("catalog:borrow_delete", kwargs={"pk": self.test_borrow.id}))
+        self.assertEqual(response.status_code, 302)
+
+    def test_owner_can_delete_borrow(self):
+        """Test that the tool owner can delete a borrow"""
+        self.client.login(username="owner", password="ownerpass")
+
+        # Verify borrow exists before deletion
+        self.assertTrue(BorrowTool.objects.filter(id=self.test_borrow.id).exists())
+
+        # Delete the borrow
+        response = self.client.post(reverse("catalog:borrow_delete", kwargs={"pk": self.test_borrow.id}))
+
+        # Should redirect to tool detail page
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(f"/catalog/{self.test_tool.id}/", response['Location'])
+
+        # Verify borrow was deleted
+        self.assertFalse(BorrowTool.objects.filter(id=self.test_borrow.id).exists())
+
+    def test_staff_can_delete_borrow(self):
+        """Test that staff users can delete a borrow"""
+        self.client.login(username="staff", password="staffpass")
+
+        # Create a new borrow for this test
+        borrow = BorrowTool.objects.create(
+            tool=self.test_tool,
+            user=self.borrower_user,
+            date_borrow=datetime.date(2025, 1, 20),
+            start_time_borrow=100,
+            end_time_borrow=110,
+            comment="Test borrow for staff deletion",
+        )
+
+        # Verify borrow exists before deletion
+        self.assertTrue(BorrowTool.objects.filter(id=borrow.id).exists())
+
+        # Delete the borrow
+        response = self.client.post(reverse("catalog:borrow_delete", kwargs={"pk": borrow.id}))
+
+        # Should redirect to tool detail page
+        self.assertEqual(response.status_code, 302)
+
+        # Verify borrow was deleted
+        self.assertFalse(BorrowTool.objects.filter(id=borrow.id).exists())
+
+    def test_normal_user_cannot_delete_borrow(self):
+        """Test that normal users cannot delete borrows"""
+        self.client.login(username="normal", password="normalpass")
+
+        # Create a new borrow for this test
+        borrow = BorrowTool.objects.create(
+            tool=self.test_tool,
+            user=self.borrower_user,
+            date_borrow=datetime.date(2025, 1, 25),
+            start_time_borrow=120,
+            end_time_borrow=130,
+            comment="Test borrow that should not be deleted",
+        )
+
+        # Verify borrow exists before attempted deletion
+        self.assertTrue(BorrowTool.objects.filter(id=borrow.id).exists())
+
+        # Try to delete the borrow (should be forbidden)
+        response = self.client.post(reverse("catalog:borrow_delete", kwargs={"pk": borrow.id}))
+
+        # Should return 403 Forbidden
+        self.assertEqual(response.status_code, 403)
+
+        # Verify borrow still exists
+        self.assertTrue(BorrowTool.objects.filter(id=borrow.id).exists())
+
+    def test_borrower_cannot_delete_own_borrow(self):
+        """Test that the borrower cannot delete their own borrow (unless they are the owner or staff)"""
+        self.client.login(username="borrower", password="borrowerpass")
+
+        # Create a new borrow for this test
+        borrow = BorrowTool.objects.create(
+            tool=self.test_tool,
+            user=self.borrower_user,
+            date_borrow=datetime.date(2025, 1, 30),
+            start_time_borrow=80,
+            end_time_borrow=90,
+            comment="Borrower's own borrow",
+        )
+
+        # Verify borrow exists before attempted deletion
+        self.assertTrue(BorrowTool.objects.filter(id=borrow.id).exists())
+
+        # Try to delete the borrow
+        response = self.client.post(reverse("catalog:borrow_delete", kwargs={"pk": borrow.id}))
+
+        # Should return 403 Forbidden (borrower is not the tool owner)
+        self.assertEqual(response.status_code, 403)
+
+        # Verify borrow still exists
+        self.assertTrue(BorrowTool.objects.filter(id=borrow.id).exists())
+
+    def test_unauthenticated_user_redirected(self):
+        """Test that unauthenticated users are redirected to login"""
+        # Don't login
+        response = self.client.post(reverse("catalog:borrow_delete", kwargs={"pk": self.test_borrow.id}))
+
+        # Should redirect to login page
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/login/", response['Location'])
+
+        # Verify borrow still exists
+        self.assertTrue(BorrowTool.objects.filter(id=self.test_borrow.id).exists())
+
+    def test_delete_redirects_to_tool_detail(self):
+        """Test that successful deletion redirects to the tool detail page"""
+        self.client.login(username="owner", password="ownerpass")
+
+        # Create a new borrow to avoid issues with already deleted borrow
+        borrow = BorrowTool.objects.create(
+            tool=self.test_tool,
+            user=self.borrower_user,
+            date_borrow=datetime.date(2025, 1, 28),
+            start_time_borrow=100,
+            end_time_borrow=110,
+            comment="Test for redirect",
+        )
+
+        # Delete the borrow
+        response = self.client.post(reverse("catalog:borrow_delete", kwargs={"pk": borrow.id}))
+
+        # Should redirect to tool detail page
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], reverse("catalog:tool_detail", kwargs={"pk": self.test_tool.id}))
+
+    def test_delete_success_message(self):
+        """Test that a success message is displayed after deletion"""
+        self.client.login(username="owner", password="ownerpass")
+
+        # Create a new borrow for this test
+        borrow = BorrowTool.objects.create(
+            tool=self.test_tool,
+            user=self.borrower_user,
+            date_borrow=datetime.date(2025, 2, 1),
+            start_time_borrow=60,
+            end_time_borrow=70,
+            comment="Test borrow for message check",
+        )
+
+        # Delete the borrow
+        response = self.client.post(reverse("catalog:borrow_delete", kwargs={"pk": borrow.id}), follow=True)
+
+        # Check for success message
+        messages = list(response.context["messages"])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), "L'utilisation a été supprimée avec succès !")
+
+    def test_delete_nonexistent_borrow(self):
+        """Test attempting to delete a non-existent borrow"""
+        self.client.login(username="owner", password="ownerpass")
+
+        # Use a non-existent ID
+        non_existent_id = 99999
+
+        # Try to delete non-existent borrow
+        response = self.client.post(reverse("catalog:borrow_delete", kwargs={"pk": non_existent_id}))
+
+        # Should return 404 Not Found
+        self.assertEqual(response.status_code, 404)
+
+
+class BorrowButtonsDisplayTest(TestCase):
+    """Unit tests for the display of edit and delete buttons in the tool detail template"""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up test data for all test methods"""
+        # Create users
+        cls.owner_user = User.objects.create_user(username="owner", password="ownerpass")
+        cls.staff_user = User.objects.create_user(username="staff", password="staffpass", is_staff=True)
+        cls.normal_user = User.objects.create_user(username="normal", password="normalpass")
+        cls.borrower_user = User.objects.create_user(username="borrower", password="borrowerpass")
+
+        # Create a tool owned by owner_user
+        cls.test_tool = AgriculturalTool.objects.create(
+            name="Test Tool",
+            description="A tool for testing button display",
+            user=cls.owner_user,
+        )
+
+        # Create a borrow
+        cls.test_borrow = BorrowTool.objects.create(
+            tool=cls.test_tool,
+            user=cls.borrower_user,
+            date_borrow=datetime.date(2025, 1, 15),
+            start_time_borrow=140,
+            end_time_borrow=150,
+            comment="Test borrow",
+        )
+
+    def test_owner_sees_edit_and_delete_buttons(self):
+        """Test that the tool owner sees both edit and delete buttons"""
+        self.client.login(username="owner", password="ownerpass")
+        response = self.client.get(reverse("catalog:tool_detail", kwargs={"pk": self.test_tool.id}))
+
+        self.assertEqual(response.status_code, 200)
+
+        # Check for edit button
+        self.assertContains(response, 'href="/catalog/borrow/{}/update/"'.format(self.test_borrow.id))
+        self.assertContains(response, '<i class="bi bi-pencil"></i>')
+        self.assertContains(response, 'Éditer')
+
+        # Check for delete button
+        self.assertContains(response, 'data-bs-toggle="modal"')
+        self.assertContains(response, 'data-bs-target="#deleteModal{}"'.format(self.test_borrow.id))
+        self.assertContains(response, '<i class="bi bi-trash"></i>')
+        self.assertContains(response, 'Supprimer')
+
+    def test_staff_sees_edit_and_delete_buttons(self):
+        """Test that staff users see both edit and delete buttons"""
+        self.client.login(username="staff", password="staffpass")
+        response = self.client.get(reverse("catalog:tool_detail", kwargs={"pk": self.test_tool.id}))
+
+        self.assertEqual(response.status_code, 200)
+
+        # Check for edit button
+        self.assertContains(response, 'href="/catalog/borrow/{}/update/"'.format(self.test_borrow.id))
+        self.assertContains(response, 'Éditer')
+
+        # Check for delete button
+        self.assertContains(response, 'data-bs-toggle="modal"')
+        self.assertContains(response, 'data-bs-target="#deleteModal{}"'.format(self.test_borrow.id))
+        self.assertContains(response, 'Supprimer')
+
+    def test_normal_user_does_not_see_buttons(self):
+        """Test that normal users don't see edit and delete buttons"""
+        self.client.login(username="normal", password="normalpass")
+
+        # Give access to the tool so the user can view it
+        ToolAccess.objects.create(user=self.normal_user, tool=self.test_tool)
+
+        response = self.client.get(reverse("catalog:tool_detail", kwargs={"pk": self.test_tool.id}))
+
+        self.assertEqual(response.status_code, 200)
+
+        # Check that Actions column header is NOT present
+        self.assertNotContains(response, '<th>Actions</th>')
+
+        # Check that edit button is NOT present for this specific borrow
+        edit_url = 'href="/catalog/borrow/{}/update/"'.format(self.test_borrow.id)
+        self.assertNotContains(response, edit_url)
+
+    def test_borrower_does_not_see_buttons(self):
+        """Test that the borrower doesn't see edit and delete buttons (unless they're owner or staff)"""
+        self.client.login(username="borrower", password="borrowerpass")
+
+        # Give access to the tool so the user can view it
+        ToolAccess.objects.create(user=self.borrower_user, tool=self.test_tool)
+
+        response = self.client.get(reverse("catalog:tool_detail", kwargs={"pk": self.test_tool.id}))
+
+        self.assertEqual(response.status_code, 200)
+
+        # Check that Actions column header is NOT present
+        self.assertNotContains(response, '<th>Actions</th>')
+
+    def test_delete_modal_present_for_owner(self):
+        """Test that the delete confirmation modal is present for the owner"""
+        self.client.login(username="owner", password="ownerpass")
+        response = self.client.get(reverse("catalog:tool_detail", kwargs={"pk": self.test_tool.id}))
+
+        self.assertEqual(response.status_code, 200)
+
+        # Check for modal structure
+        self.assertContains(response, 'id="deleteModal{}"'.format(self.test_borrow.id))
+        self.assertContains(response, 'Confirmer la suppression')
+        self.assertContains(response, 'Êtes-vous sûr de vouloir supprimer cette utilisation ?')
+        self.assertContains(response, 'Cette action est irréversible')
+
+        # Check for form with CSRF token
+        self.assertContains(response, 'action="/catalog/borrow/{}/delete/"'.format(self.test_borrow.id))
+        self.assertContains(response, 'csrfmiddlewaretoken')
+
+        # Check for cancel and confirm buttons in modal
+        self.assertContains(response, 'Annuler')
+
+    def test_delete_modal_not_present_for_normal_user(self):
+        """Test that the delete confirmation modal is not present for normal users"""
+        self.client.login(username="normal", password="normalpass")
+
+        # Give access to the tool
+        ToolAccess.objects.create(user=self.normal_user, tool=self.test_tool)
+
+        response = self.client.get(reverse("catalog:tool_detail", kwargs={"pk": self.test_tool.id}))
+
+        self.assertEqual(response.status_code, 200)
+
+        # Modal should not be present
+        self.assertNotContains(response, 'id="deleteModal{}"'.format(self.test_borrow.id))
+
+    def test_multiple_borrows_have_separate_modals(self):
+        """Test that multiple borrows each have their own delete modal"""
+        self.client.login(username="owner", password="ownerpass")
+
+        # Create additional borrows
+        borrow2 = BorrowTool.objects.create(
+            tool=self.test_tool,
+            user=self.borrower_user,
+            date_borrow=datetime.date(2025, 1, 16),
+            start_time_borrow=100,
+            end_time_borrow=110,
+            comment="Second borrow",
+        )
+
+        borrow3 = BorrowTool.objects.create(
+            tool=self.test_tool,
+            user=self.borrower_user,
+            date_borrow=datetime.date(2025, 1, 17),
+            start_time_borrow=120,
+            end_time_borrow=130,
+            comment="Third borrow",
+        )
+
+        response = self.client.get(reverse("catalog:tool_detail", kwargs={"pk": self.test_tool.id}))
+
+        self.assertEqual(response.status_code, 200)
+
+        # Check that all three modals are present with unique IDs
+        self.assertContains(response, 'id="deleteModal{}"'.format(self.test_borrow.id))
+        self.assertContains(response, 'id="deleteModal{}"'.format(borrow2.id))
+        self.assertContains(response, 'id="deleteModal{}"'.format(borrow3.id))
+
+        # Check that each has its own delete button with correct target
+        self.assertContains(response, 'data-bs-target="#deleteModal{}"'.format(self.test_borrow.id))
+        self.assertContains(response, 'data-bs-target="#deleteModal{}"'.format(borrow2.id))
+        self.assertContains(response, 'data-bs-target="#deleteModal{}"'.format(borrow3.id))
+

@@ -10,7 +10,7 @@
       <div class="card shadow">
         <div class="card-header bg-primary text-white">
           <h4 class="card-title mb-0">
-            <i class="bi bi-hand-index-thumb me-2"></i>Emprunt d'outil
+            <i class="bi bi-hand-index-thumb me-2"></i>{% if is_update %}Modifier l'emprunt{% else %}Emprunt d'outil{% endif %}
           </h4>
         </div>
         
@@ -35,7 +35,7 @@
           
           <hr>
 
-          <h5 class="mb-3">Formulaire d'emprunt</h5>
+          <h5 class="mb-3">{% if is_update %}Modifier l'emprunt{% else %}Formulaire d'emprunt{% endif %}</h5>
           <form method="post">
             {% csrf_token %}
             
@@ -88,12 +88,21 @@
             </div>
             
             <div class="d-flex justify-content-between mt-4">
+              {% if is_update %}
+              <a href="{% url 'catalog:tool_detail' tool.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Retour au détail de l'outil
+              </a>
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle me-1"></i>Enregistrer les modifications
+              </button>
+              {% else %}
               <a href="{% url 'catalog:index' %}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i>Retour au catalogue
               </a>
               <button type="submit" class="btn btn-success">
                 <i class="bi bi-check-circle me-1"></i>Confirmer l'emprunt
               </button>
+              {% endif %}
             </div>
           </form>
         </div>
