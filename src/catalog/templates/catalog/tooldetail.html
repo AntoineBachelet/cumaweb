@@ -60,9 +60,12 @@
                             <td>{{ borrow.comment|default:"-" }}</td>
                             {% if user == tool.user or user.is_staff %}
                             <td>
-                              <a href="{% url 'catalog:borrow_update' borrow.id %}" class="btn btn-sm btn-primary">
+                              <a href="{% url 'catalog:borrow_update' borrow.id %}" class="btn btn-sm btn-primary me-1">
                                 <i class="bi bi-pencil"></i> Éditer
                               </a>
+                              <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ borrow.id }}">
+                                <i class="bi bi-trash"></i> Supprimer
+                              </button>
                             </td>
                             {% endif %}
                           </tr>
@@ -70,6 +73,40 @@
                       </tbody>
                     </table>
                   </div>
+
+                  {% for borrow in borrows %}
+                  <!-- Modal de confirmation de suppression pour chaque emprunt -->
+                  <div class="modal fade" id="deleteModal{{ borrow.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ borrow.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="deleteModalLabel{{ borrow.id }}">Confirmer la suppression</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <p>Êtes-vous sûr de vouloir supprimer cette utilisation ?</p>
+                          <ul class="list-unstyled">
+                            <li><strong>Date :</strong> {{ borrow.date_borrow|date:"d/m/Y" }}</li>
+                            <li><strong>Utilisateur :</strong> {{ borrow.user.get_full_name|default:borrow.user.username }}</li>
+                            <li><strong>Durée :</strong> {{ borrow.get_duration|floatformat:2 }} heures</li>
+                          </ul>
+                          <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> Cette action est irréversible.
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                          <form action="{% url 'catalog:borrow_delete' borrow.id %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                              <i class="bi bi-trash"></i> Supprimer
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
                 {% else %}
                   <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i> Cet outil n'a pas encore été emprunté.

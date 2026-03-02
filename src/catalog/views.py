@@ -134,6 +134,22 @@ class BorrowUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().form_invalid(form)
 
 
+class BorrowDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View to delete a BorrowTool"""
+
+    login_url = "/users/login/"
+    model = BorrowTool
+
+    def test_func(self):
+        """Check if user is the owner of the tool or is staff"""
+        borrow = self.get_object()
+        return self.request.user == borrow.tool.user or self.request.user.is_staff
+
+    def get_success_url(self):
+        messages.success(self.request, "L'utilisation a été supprimée avec succès !")
+        return reverse_lazy("catalog:tool_detail", kwargs={"pk": self.object.tool.id})
+
+
 class ToolDetailView(LoginRequiredMixin, DetailView):
     """View to display the detail of an AgriculturalTool"""
 
